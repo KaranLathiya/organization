@@ -46,6 +46,7 @@ func (c *UserController) UpdateOrganizationDetails(w http.ResponseWriter, r *htt
 			return
 		}
 		utils.SuccessMessageResponse(w, 200, response.SuccessResponse{Message: constant.ORGANIZATION_DETAILS_UPDATED})
+		return
 	}
 	error_handling.ErrorMessageResponse(w, error_handling.NoAccessRights)
 }

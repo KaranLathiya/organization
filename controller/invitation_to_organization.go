@@ -50,4 +50,30 @@ func (c *UserController) TrackAllInvitations(w http.ResponseWriter, r *http.Requ
 	utils.SuccessMessageResponse(w, 200, invitationDetailsList)
 }
 
-
+func (c *UserController) RespondToInvitation(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value(middleware.UserCtxKey).(string)
+	respondToInvitation := request.RespondToInvitation{
+		OrganizationID: r.FormValue("organization"),
+		Respond:        r.FormValue("respond"),
+	}
+	err := utils.ValidateStruct(respondToInvitation, nil)
+	if err != nil {
+		error_handling.ErrorMessageResponse(w, err)
+		return
+	}
+	if respondToInvitation.Respond == "accept" {
+		err = c.repo.AcceptInvitation(userID, respondToInvitation.OrganizationID)
+		if err != nil {
+			error_handling.ErrorMessageResponse(w, err)
+			return
+		}
+		utils.SuccessMessageResponse(w, 200, response.SuccessResponse{Message: constant.INVITATION_ACCEPTED})
+		return
+	}
+	err = c.repo.RejectInvitation(userID, respondToInvitation.OrganizationID)
+	if err != nil {
+		error_handling.ErrorMessageResponse(w, err)
+		return
+	}
+	utils.SuccessMessageResponse(w, 200, response.SuccessResponse{Message: constant.INVITATION_REJECTED})
+}

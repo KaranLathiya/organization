@@ -82,7 +82,9 @@ var (
 
 	OrganizationDoesNotExist = CreateCustomError("Organization does not exist.", http.StatusNotFound)
 	NoAccessRights           = CreateCustomError("Member doesn't have permission due to the role.", http.StatusUnauthorized)
-	InvitationAlreadyExist   = CreateCustomError("Already invited the member.", http.StatusOK)
+	// InvitationAlreadyExist   = CreateCustomError("Already invited the member.", http.StatusOK)
+	AlreadyMember = CreateCustomError("Already member of the organization.", http.StatusConflict)
+	
 )
 
 // func DatabaseError(err error) error {

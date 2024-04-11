@@ -16,10 +16,18 @@ func InitializeRouter(controllers *controller.UserController) *chi.Mux {
 		r.Route("/organization", func(r chi.Router) {
 			r.Use(middleware.Authentication)
 			r.Post("/", controllers.CreateOrganization)
+			r.Put("/", controllers.UpdateOrganizationDetails)
 
 			r.Route("/member", func(r chi.Router) {
-				r.Post("/invite", controllers.InvitationToOrganization)
+
+				r.Route("/invite", func(r chi.Router) {
+					r.Post("/", controllers.InvitationToOrganization)
+					r.Get("/", controllers.TrackAllInvitations)
+					r.Delete("/", controllers.RespondToInvitation)
+				})
+
 			})
+			
 		})
 
 		r.MethodNotAllowed(func(w http.ResponseWriter, r *http.Request) {
@@ -34,5 +42,5 @@ func InitializeRouter(controllers *controller.UserController) *chi.Mux {
 	})
 
 	return router
-	
+
 }

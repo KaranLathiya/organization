@@ -18,7 +18,7 @@ func CreateOrganization(tx *sql.Tx, createOrganization request.CreateOrganizatio
 }
 
 func UpdateOrganizationDetails(db *sql.DB, memberID string, updateOrganizationDetails request.UpdateOrganizationDetails) error{
-	_, err := db.Exec("UPDATE public.organization SET privacy=$1,name=$2 WHERE organization_id=$3 ;", updateOrganizationDetails.Privacy, updateOrganizationDetails.Name, updateOrganizationDetails.OrganizationID)
+	_, err := db.Exec("UPDATE public.organization SET privacy=$1,name=$2 WHERE id=$3 ;", updateOrganizationDetails.Privacy, updateOrganizationDetails.Name, updateOrganizationDetails.OrganizationID)
 	if err != nil {
 			return error_handling.InternalServerError
 		}
