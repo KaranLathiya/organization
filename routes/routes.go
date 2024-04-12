@@ -20,14 +20,18 @@ func InitializeRouter(controllers *controller.UserController) *chi.Mux {
 
 			r.Route("/member", func(r chi.Router) {
 
+				r.Delete("/", controllers.RemoveMemberFromOrganization)
+				
+				r.Put("/role", controllers.UpdateMemberRole)
+
 				r.Route("/invite", func(r chi.Router) {
 					r.Post("/", controllers.InvitationToOrganization)
 					r.Get("/", controllers.TrackAllInvitations)
 					r.Delete("/", controllers.RespondToInvitation)
 				})
 
-			})
-			
+			})	
+
 		})
 
 		r.MethodNotAllowed(func(w http.ResponseWriter, r *http.Request) {

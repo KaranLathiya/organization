@@ -10,9 +10,9 @@ import (
 	"github.com/lib/pq"
 )
 
-func InvitationToOrganization(db *sql.DB, invitationToOrganization request.InvitationToOrganization, memberID string) (bool, error) {
+func InvitationToOrganization(db *sql.DB, invitationToOrganization request.InvitationToOrganization, userID string) (bool, error) {
 	var id string
-	err := db.QueryRow("INSERT INTO public.invitation (invitee, organization_id, role, invited_at, invited_by) VALUES ($1, $2, $3, $4, $5) returning id", invitationToOrganization.Invitee, invitationToOrganization.OrganizationID, invitationToOrganization.Role, utils.CurrentUTCTime(0), memberID).Scan(&id)
+	err := db.QueryRow("INSERT INTO public.invitation (invitee, organization_id, role, invited_at, invited_by) VALUES ($1, $2, $3, $4, $5) returning id", invitationToOrganization.Invitee, invitationToOrganization.OrganizationID, invitationToOrganization.Role, utils.CurrentUTCTime(0), userID).Scan(&id)
 	if dbErr, ok := err.(*pq.Error); ok {
 		errCode := dbErr.Code
 		switch errCode {
@@ -30,8 +30,8 @@ func InvitationToOrganization(db *sql.DB, invitationToOrganization request.Invit
 	return true, nil
 }
 
-func TrackAllInvitations(db *sql.DB, memberID string) ([]response.InvitationDetails, error) {
-	rows, err := db.Query("SELECT id, role, organization_id, invited_by, invited_at FROM public.invitation WHERE invitee = $1 ", memberID)
+func TrackAllInvitations(db *sql.DB, userID string) ([]response.InvitationDetails, error) {
+	rows, err := db.Query("SELECT id, role, organization_id, invited_by, invited_at FROM public.invitation WHERE invitee = $1 ", userID)
 	if err != nil {
 		return nil, error_handling.InternalServerError
 	}
@@ -59,7 +59,7 @@ func AcceptInvitation(tx *sql.Tx, userID string, organizationID string) (string,
 	return invitedRole, invitedBy, nil
 }
 
-func RejectInvitation(db *sql.DB,userID string, organizationID string) error{
+func RejectInvitation(db *sql.DB, userID string, organizationID string) error {
 	result, err := db.Exec("DELETE FROM public.invitation WHERE invitee = $1 AND organization_id = $2", userID, organizationID)
 	if err != nil {
 		return error_handling.InternalServerError
@@ -70,6 +70,14 @@ func RejectInvitation(db *sql.DB,userID string, organizationID string) error{
 	}
 	if rowsAffected == 0 {
 		return error_handling.InvalidDetails
+	}
+	return nil
+}
+
+func DeleteSentInvitations(tx *sql.Tx, userID string, organizationID string) error {
+	_, err := tx.Exec("DELETE FROM public.invitation WHERE invited_by = $1 AND organization_id = $2", userID, organizationID)
+	if err != nil {
+		return error_handling.InternalServerError
 	}
 	return nil
 }

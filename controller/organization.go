@@ -27,20 +27,20 @@ func (c *UserController) CreateOrganization(w http.ResponseWriter, r *http.Reque
 }
 
 func (c *UserController) UpdateOrganizationDetails(w http.ResponseWriter, r *http.Request) {
-	memberID := r.Context().Value(middleware.UserCtxKey).(string)
+	userID := r.Context().Value(middleware.UserCtxKey).(string)
 	var updateOrganizationDetails request.UpdateOrganizationDetails
 	err := utils.BodyReadAndValidate(r.Body, &updateOrganizationDetails, nil)
 	if err != nil {
 		error_handling.ErrorMessageResponse(w, err)
 		return
 	}
-	role, err := c.repo.CheckRole(memberID, updateOrganizationDetails.OrganizationID)
+	role, err := c.repo.CheckRole(userID, updateOrganizationDetails.OrganizationID)
 	if err != nil {
 		error_handling.ErrorMessageResponse(w, err)
 		return
 	}
 	if role == "admin" || role == "owner" {
-		err := c.repo.UpdateOrganizationDetails(memberID, updateOrganizationDetails)
+		err := c.repo.UpdateOrganizationDetails(userID, updateOrganizationDetails)
 		if err != nil {
 			error_handling.ErrorMessageResponse(w, err)
 			return

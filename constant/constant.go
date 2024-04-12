@@ -9,4 +9,6 @@ const (
 	INVITATION_REJECTED          = "Invitation rejected successfully."
 	INVITATION_ACCEPTED          = "Invitation accepted successfully and joined the organization."
 	ROLE_UPDATED                 = "Role updated successfully."
+	LEAVE_ORGANIZATION           = "Successfully left the organization."
+	REMOVED_FROM_ORGANIZATION    = "Successfully removed from organization."
 )

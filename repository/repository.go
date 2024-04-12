@@ -11,12 +11,14 @@ import (
 type Repository interface {
 	CreateOrganization(organizationCreate request.CreateOrganization, ownerID string) (string, error)
 	CheckRole(memberID string, organizationID string) (string, error)
-	InvitationToOrganization(invitationToOrganization request.InvitationToOrganization, memberID string) (bool, error)
-	TrackAllInvitations(memberID string) ([]response.InvitationDetails, error)
-	UpdateOrganizationDetails(memberID string, updateOrganizationDetails request.UpdateOrganizationDetails) error
-	AcceptInvitation(userID string, organizationID string) error
+	InvitationToOrganization(invitationToOrganization request.InvitationToOrganization, userID string) (bool, error)
+	TrackAllInvitations(userID string) ([]response.InvitationDetails, error)
+	UpdateOrganizationDetails(userID string, updateOrganizationDetails request.UpdateOrganizationDetails) error
+	AcceptInvitationAndJoinTheOrganization(userID string, organizationID string) error
 	RejectInvitation(userID string, organizationID string) error
 	UpdateMemberRole(userID string, role string, organizationID string, memberID string) error
+	DeleteSentInvitationsAndLeaveOrganization(organizationID string, userID string) error
+	DeleteSentInvitationsAndRemoveMemberFromOrganization(organizationID string, memberID string) error
 }
 
 type Repositories struct {
@@ -49,30 +51,30 @@ func (r *Repositories) CreateOrganization(createOrganization request.CreateOrgan
 	return organizationID, nil
 }
 
-func (r *Repositories) CheckRole(memberID string, organizationID string) (string, error) {
-	return dal.CheckRole(r.db, memberID, organizationID)
+func (r *Repositories) CheckRole(userID string, organizationID string) (string, error) {
+	return dal.CheckRole(r.db, userID, organizationID)
 }
 
-func (r *Repositories) InvitationToOrganization(invitationToOrganization request.InvitationToOrganization, memberID string) (bool, error) {
+func (r *Repositories) InvitationToOrganization(invitationToOrganization request.InvitationToOrganization, userID string) (bool, error) {
 	isMemberOfOrganization, err := dal.IsMemberOfOrganization(r.db, invitationToOrganization.Invitee, invitationToOrganization.OrganizationID)
 	if err != nil {
-		return false,err
+		return false, err
 	}
 	if isMemberOfOrganization {
-		return false,error_handling.AlreadyMember
+		return false, error_handling.AlreadyMember
 	}
-	return dal.InvitationToOrganization(r.db, invitationToOrganization, memberID)
+	return dal.InvitationToOrganization(r.db, invitationToOrganization, userID)
 }
 
-func (r *Repositories) TrackAllInvitations(memberID string) ([]response.InvitationDetails, error) {
-	return dal.TrackAllInvitations(r.db, memberID)
+func (r *Repositories) TrackAllInvitations(userID string) ([]response.InvitationDetails, error) {
+	return dal.TrackAllInvitations(r.db, userID)
 }
 
-func (r *Repositories) UpdateOrganizationDetails(memberID string, updateOrganizationDetails request.UpdateOrganizationDetails) error {
-	return dal.UpdateOrganizationDetails(r.db, memberID, updateOrganizationDetails)
+func (r *Repositories) UpdateOrganizationDetails(userID string, updateOrganizationDetails request.UpdateOrganizationDetails) error {
+	return dal.UpdateOrganizationDetails(r.db, userID, updateOrganizationDetails)
 }
 
-func (r *Repositories) AcceptInvitation(userID string, organizationID string) error {
+func (r *Repositories) AcceptInvitationAndJoinTheOrganization(userID string, organizationID string) error {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return error_handling.InternalServerError
@@ -98,12 +100,61 @@ func (r *Repositories) RejectInvitation(userID string, organizationID string) er
 }
 
 func (r *Repositories) UpdateMemberRole(userID string, role string, organizationID string, memberID string) error {
-	role, err := dal.CheckRole(r.db, userID, organizationID)
+	roleOfUser, err := dal.CheckRole(r.db, memberID, organizationID)
 	if err != nil {
 		return err
 	}
-	if role == "owner" {
-		return error_handling.NoAccessRights
+	if roleOfUser == "owner" {
+		return error_handling.OwnerRoleChangeRestriction
 	}
 	return dal.UpdateMemberRole(r.db, userID, role, organizationID, memberID)
+}
+
+func (r *Repositories) DeleteSentInvitationsAndLeaveOrganization(organizationID string, userID string) error {
+	tx, err := r.db.Begin()
+	if err != nil {
+		return error_handling.InternalServerError
+	}
+	defer tx.Rollback()
+	err = dal.DeleteSentInvitations(tx, userID, organizationID)
+	if err != nil {
+		return err
+	}
+	err = dal.LeaveOrganization(tx, userID, organizationID)
+	if err != nil {
+		return err
+	}
+	err = tx.Commit()
+	if err != nil {
+		return error_handling.InternalServerError
+	}
+	return nil
+}
+
+func (r *Repositories) DeleteSentInvitationsAndRemoveMemberFromOrganization(organizationID string, memberID string) error {
+	roleOfMember, err := dal.CheckRole(r.db, memberID, organizationID)
+	if err != nil {
+		return err
+	}
+	if roleOfMember == "owner" {
+		return error_handling.OwnerRemoveRestriction
+	}
+	tx, err := r.db.Begin()
+	if err != nil {
+		return error_handling.InternalServerError
+	}
+	defer tx.Rollback()
+	err = dal.DeleteSentInvitations(tx, memberID, organizationID)
+	if err != nil {
+		return err
+	}
+	err = dal.RemoveMemberFromOrganization(tx, memberID, organizationID)
+	if err != nil {
+		return err
+	}
+	err = tx.Commit()
+	if err != nil {
+		return error_handling.InternalServerError
+	}
+	return nil
 }

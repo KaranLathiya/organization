@@ -11,20 +11,20 @@ import (
 )
 
 func (c *UserController) InvitationToOrganization(w http.ResponseWriter, r *http.Request) {
-	memberID := r.Context().Value(middleware.UserCtxKey).(string)
+	userID := r.Context().Value(middleware.UserCtxKey).(string)
 	var invitationToOrganization request.InvitationToOrganization
 	err := utils.BodyReadAndValidate(r.Body, &invitationToOrganization, nil)
 	if err != nil {
 		error_handling.ErrorMessageResponse(w, err)
 		return
 	}
-	role, err := c.repo.CheckRole(memberID, invitationToOrganization.OrganizationID)
+	role, err := c.repo.CheckRole(userID, invitationToOrganization.OrganizationID)
 	if err != nil {
 		error_handling.ErrorMessageResponse(w, err)
 		return
 	}
 	if role == "admin" || role == "owner" {
-		done, err := c.repo.InvitationToOrganization(invitationToOrganization, memberID)
+		done, err := c.repo.InvitationToOrganization(invitationToOrganization, userID)
 		if err != nil {
 			error_handling.ErrorMessageResponse(w, err)
 			return
@@ -62,7 +62,7 @@ func (c *UserController) RespondToInvitation(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	if respondToInvitation.Respond == "accept" {
-		err = c.repo.AcceptInvitation(userID, respondToInvitation.OrganizationID)
+		err = c.repo.AcceptInvitationAndJoinTheOrganization(userID, respondToInvitation.OrganizationID)
 		if err != nil {
 			error_handling.ErrorMessageResponse(w, err)
 			return

@@ -80,11 +80,16 @@ var (
 	InvalidDetails       = CreateCustomError("Invalid details provided.", http.StatusBadRequest)
 	AlreadyBlocked       = CreateCustomError("Already blocked.", http.StatusBadRequest)
 
-	OrganizationDoesNotExist = CreateCustomError("Organization does not exist.", http.StatusNotFound)
-	NoAccessRights           = CreateCustomError("Member doesn't have permission due to the role.", http.StatusUnauthorized)
+	OrganizationDoesNotExist   = CreateCustomError("Organization does not exist.", http.StatusNotFound)
+	NoAccessRights             = CreateCustomError("Member doesn't have permission due to the role.", http.StatusForbidden)
+	AlreadyMember              = CreateCustomError("Already member of the organization.", http.StatusConflict)
+	OwnerRoleChangeRestriction = CreateCustomError("Can't change the organization's owner role.", http.StatusForbidden)
+	OwnerLeaveRestriction      = CreateCustomError("Can't leave the organization without assigning owner role to other.", http.StatusForbidden)
+	OwnRoleChangeRestriction   = CreateCustomError("Can't change own role.", http.StatusForbidden)
+	OwnRemoveRestriction       = CreateCustomError("Can't remove yourself from organization.", http.StatusForbidden)
+	OwnerRemoveRestriction     = CreateCustomError("Can't remove the owner.", http.StatusForbidden)
 	// InvitationAlreadyExist   = CreateCustomError("Already invited the member.", http.StatusOK)
-	AlreadyMember = CreateCustomError("Already member of the organization.", http.StatusConflict)
-	
+
 )
 
 // func DatabaseError(err error) error {
