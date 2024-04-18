@@ -19,6 +19,8 @@ type Repository interface {
 	UpdateMemberRole(userID string, role string, organizationID string, memberID string) error
 	DeleteSentInvitationsAndLeaveOrganization(organizationID string, userID string) error
 	DeleteSentInvitationsAndRemoveMemberFromOrganization(organizationID string, memberID string) error
+	TransferOwnership(organizationID string, memberID string, userID string) error
+	FetchAllOrganizationDetailsOfUser(userID string) (response.AllOrganizationDetailsOfUser, []string, error)
 }
 
 type Repositories struct {
@@ -157,4 +159,36 @@ func (r *Repositories) DeleteSentInvitationsAndRemoveMemberFromOrganization(orga
 		return error_handling.InternalServerError
 	}
 	return nil
+}
+
+func (r *Repositories) TransferOwnership(organizationID string, memberID string, userID string) error {
+	roleOfMember, err := dal.CheckRole(r.db, memberID, organizationID)
+	if err != nil {
+		return err
+	}
+	if roleOfMember != "owner" {
+		return error_handling.OwnerAccessRights
+	}
+	tx, err := r.db.Begin()
+	if err != nil {
+		return error_handling.InternalServerError
+	}
+	defer tx.Rollback()
+	err = dal.UpdateMemberRoleWithTransaction(tx, userID, "admin", organizationID, userID)
+	if err != nil {
+		return err
+	}
+	err = dal.UpdateMemberRoleWithTransaction(tx, userID, "owner", organizationID, memberID)
+	if err != nil {
+		return err
+	}
+	err = tx.Commit()
+	if err != nil {
+		return error_handling.InternalServerError
+	}
+	return nil
+}
+
+func (r *Repositories) FetchAllOrganizationDetailsOfUser(userID string) (response.AllOrganizationDetailsOfUser, []string, error) {
+	return dal.FetchAllOrganizationDetailsOfUser(r.db, userID)
 }

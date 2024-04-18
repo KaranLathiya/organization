@@ -12,26 +12,34 @@ func InitializeRouter(controllers *controller.UserController) *chi.Mux {
 	router := chi.NewRouter()
 	router.Route("/", func(r chi.Router) {
 		r.Use(middleware.HandleCORS)
-
+		r.Use(middleware.Authentication)
 		r.Route("/organization", func(r chi.Router) {
-			r.Use(middleware.Authentication)
+
 			r.Post("/", controllers.CreateOrganization)
 			r.Put("/", controllers.UpdateOrganizationDetails)
 
-			r.Route("/member", func(r chi.Router) {
+			r.Route("/members", func(r chi.Router) {
 
 				r.Delete("/", controllers.RemoveMemberFromOrganization)
-				
-				r.Put("/role", controllers.UpdateMemberRole)
+				r.Delete("/leave", controllers.LeaveOrganization)
 
-				r.Route("/invite", func(r chi.Router) {
+				r.Route("/role", func(r chi.Router) {
+					r.Put("/", controllers.UpdateMemberRole)
+					r.Put("/owner", controllers.TransferOwnership)
+				})
+
+				r.Route("/invitation", func(r chi.Router) {
 					r.Post("/", controllers.InvitationToOrganization)
 					r.Get("/", controllers.TrackAllInvitations)
 					r.Delete("/", controllers.RespondToInvitation)
 				})
 
-			})	
+			})
 
+		})
+
+		r.Route("/member", func(r chi.Router) {
+			r.Get("/organizations",controllers.FetchAllOrganizationDetailsOfCurrentUser)
 		})
 
 		r.MethodNotAllowed(func(w http.ResponseWriter, r *http.Request) {

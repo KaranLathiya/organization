@@ -84,3 +84,18 @@ func UpdateMemberRole(db *sql.DB, userID string, role string, organizationID str
 	}
 	return nil
 }
+
+func UpdateMemberRoleWithTransaction(tx *sql.Tx, userID string, role string, organizationID string, memberID string) error {
+	result, err := tx.Exec("UPDATE public.member SET role = $1, updated_by = $2, updated_at = $3 WHERE user_id = $4 AND organization_id = $5;", role, userID, utils.CurrentUTCTime(0), memberID, organizationID)
+	if err != nil {
+		return error_handling.InternalServerError
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return error_handling.InternalServerError
+	}
+	if rowsAffected == 0 {
+		return error_handling.InvalidDetails
+	}
+	return nil
+}

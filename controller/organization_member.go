@@ -99,3 +99,23 @@ func (c *UserController) RemoveMemberFromOrganization(w http.ResponseWriter, r *
 	}
 	error_handling.ErrorMessageResponse(w, error_handling.NoAccessRights)
 }
+
+func (c *UserController) TransferOwnership(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value(middleware.UserCtxKey).(string)
+	var transferOwnership request.TransferOwnership
+	err := utils.BodyReadAndValidate(r.Body, &transferOwnership, nil)
+	if err != nil {
+		error_handling.ErrorMessageResponse(w, err)
+		return
+	}
+	if userID == transferOwnership.MemberID {
+		error_handling.ErrorMessageResponse(w, error_handling.OwnRoleChangeRestriction)
+		return
+	}
+	err = c.repo.TransferOwnership(transferOwnership.OrganizationID, transferOwnership.MemberID, userID)
+	if err != nil {
+		error_handling.ErrorMessageResponse(w, err)
+		return
+	}
+	utils.SuccessMessageResponse(w, 200, response.SuccessResponse{Message: constant.OWNERSHIP_TRANSFERRED})
+}

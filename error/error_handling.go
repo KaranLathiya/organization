@@ -88,6 +88,7 @@ var (
 	OwnRoleChangeRestriction   = CreateCustomError("Can't change own role.", http.StatusForbidden)
 	OwnRemoveRestriction       = CreateCustomError("Can't remove yourself from organization.", http.StatusForbidden)
 	OwnerRemoveRestriction     = CreateCustomError("Can't remove the owner.", http.StatusForbidden)
+	OwnerAccessRights          = CreateCustomError("Only owner have permission.", http.StatusForbidden)
 	// InvitationAlreadyExist   = CreateCustomError("Already invited the member.", http.StatusOK)
 
 )

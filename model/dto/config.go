@@ -2,6 +2,7 @@ package dto
 
 type Config struct {
 	Port     string   `mapstructure:"PORT"`
+	JWTKey   string   `mapstructure:"JWTKEY"`
 	Database Database `mapstructure:",squash"`
 }
 type Database struct {

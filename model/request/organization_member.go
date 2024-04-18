@@ -1,7 +1,7 @@
 package request
 
 type UpdateMemberRole struct {
-	Role           string `json:"Role" validate:"required|in:admin,editor,viewer"`
+	Role           string `json:"role" validate:"required|in:admin,editor,viewer"`
 	OrganizationID string `json:"organizationID" validate:"required"`
 	MemberID       string `json:"memberID" validate:"required"`
 }
@@ -11,6 +11,11 @@ type OrganizationID struct {
 }
 
 type RemoveMemberFromOrganization struct {
+	OrganizationID string `json:"organizationID" validate:"required"`
+	MemberID       string `json:"memberID" validate:"required"`
+}
+
+type TransferOwnership struct {
 	OrganizationID string `json:"organizationID" validate:"required"`
 	MemberID       string `json:"memberID" validate:"required"`
 }

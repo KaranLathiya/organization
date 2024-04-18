@@ -50,3 +50,4 @@ func (c *UserController) UpdateOrganizationDetails(w http.ResponseWriter, r *htt
 	}
 	error_handling.ErrorMessageResponse(w, error_handling.NoAccessRights)
 }
+

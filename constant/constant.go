@@ -11,4 +11,5 @@ const (
 	ROLE_UPDATED                 = "Role updated successfully."
 	LEAVE_ORGANIZATION           = "Successfully left the organization."
 	REMOVED_FROM_ORGANIZATION    = "Successfully removed from organization."
+	OWNERSHIP_TRANSFERRED        = "Ownership of organization transferred successfully."
 )
