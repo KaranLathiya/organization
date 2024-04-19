@@ -89,6 +89,10 @@ var (
 	OwnRemoveRestriction       = CreateCustomError("Can't remove yourself from organization.", http.StatusForbidden)
 	OwnerRemoveRestriction     = CreateCustomError("Can't remove the owner.", http.StatusForbidden)
 	OwnerAccessRights          = CreateCustomError("Only owner have permission.", http.StatusForbidden)
+	NotMemberOfOrganization    = CreateCustomError("You aren't member of organization.", http.StatusNotFound)
+	JWTErrSignatureInvalid = CreateCustomError("Invalid signature on jwt token.", http.StatusUnauthorized)
+	JWTTokenInvalid        = CreateCustomError("Invalid jwt token.", http.StatusBadRequest)
+	JWTTokenInvalidDetails = CreateCustomError("Invalid jwt token details.", http.StatusBadRequest)
 	// InvitationAlreadyExist   = CreateCustomError("Already invited the member.", http.StatusOK)
 
 )

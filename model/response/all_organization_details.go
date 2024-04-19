@@ -6,13 +6,13 @@ type AllOrganizationDetailsOfUser struct {
 }
 
 type Organization struct {
-	OrganizationID      string               `json:"organizationID"`
-	OwnerID             string               `json:"ownerID"`
-	Name                string               `json:"name"`
-	Privacy             string               `json:"privacy"`
-	CreatedAt           string               `json:"createdAt" `
-	UpdatedAt           *string              `json:"updatedAt" `
-	UpdatedBy           *string              `json:"updatedBy" `
+	OrganizationID      string                 `json:"organizationID"`
+	OwnerID             string                 `json:"ownerID"`
+	Name                string                 `json:"name"`
+	Privacy             string                 `json:"privacy"`
+	CreatedAt           string                 `json:"createdAt" `
+	UpdatedAt           *string                `json:"updatedAt" `
+	UpdatedBy           *string                `json:"updatedBy" `
 	OrganizationMembers *[]*OrganizationMember `json:"organizationMembers"`
 }
 
@@ -23,4 +23,9 @@ type OrganizationMember struct {
 	Lastname  string `json:"lastname" `
 	Fullname  string `json:"fullname" `
 	Username  string `json:"username" `
+}
+
+type OrganizationDetailsOfUser struct {
+	UserID       string       `json:"userID"`
+	Organization Organization `json:"organization"`
 }

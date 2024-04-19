@@ -9,7 +9,7 @@ import (
 	"organization/model/response"
 	"organization/utils"
 
-	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi"
 )
 
 func (c *UserController) UpdateMemberRole(w http.ResponseWriter, r *http.Request) {

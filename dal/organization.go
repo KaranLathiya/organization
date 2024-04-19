@@ -7,6 +7,8 @@ import (
 	"organization/utils"
 
 	error_handling "organization/error"
+
+	"github.com/lib/pq"
 )
 
 func CreateOrganization(tx *sql.Tx, createOrganization request.CreateOrganization, ownerID string) (string, error) {
@@ -60,4 +62,91 @@ func FetchAllOrganizationDetailsOfUser(db *sql.DB, userID string) (response.AllO
 		}
 	}
 	return allOrganizationDetailsOfUser, allMemberIDs, nil
+}
+
+func FetchOnlyOrganizationDetailsOfCurrentUser(db *sql.DB, userID string, organizationID string) (response.OrganizationDetailsOfUser, []string, error) {
+	var allMemberIDs []string
+	organizationDetailsOfUser := response.OrganizationDetailsOfUser{
+		UserID: userID,
+	}
+	var organization response.Organization
+	err := db.QueryRow("SELECT id, name, owner_id FROM public.organization WHERE id = $1;", organizationID).Scan(&organization.OrganizationID, &organization.Name, &organization.OwnerID)
+	if err != nil {
+		if err.Error() == "sql: no rows in result set" {
+			return organizationDetailsOfUser, nil, error_handling.OrganizationDoesNotExist
+		}
+		return organizationDetailsOfUser, nil, error_handling.InternalServerError
+	}
+	allMemberIDs = append(allMemberIDs, organization.OwnerID)
+	organization.OrganizationMembers = &[]*response.OrganizationMember{}
+	organizationMember := &response.OrganizationMember{
+		UserID: organization.OwnerID,
+		Role:   "owner",
+	}
+	*organization.OrganizationMembers = append(*organization.OrganizationMembers, organizationMember)
+	organizationDetailsOfUser.Organization = organization
+	return organizationDetailsOfUser, allMemberIDs, nil
+}
+
+func FetchOrganizationDetailsOfCurrentUser(db *sql.DB, userID string, organizationID string) (response.OrganizationDetailsOfUser, []string, error) {
+	var allMemberIDs []string
+	organizationDetailsOfUser := response.OrganizationDetailsOfUser{
+		UserID: userID,
+	}
+	rows, err := db.Query("SELECT org_member.organization_id, organization.name, organization.owner_id, organization.created_at, organization.privacy, organization.updated_by, organization.updated_at, org_member.role, org_member.user_id FROM member AS org_member LEFT JOIN organization ON organization.id = org_member.organization_id WHERE organization.id = $1;", organizationID)
+	if err != nil {
+		return organizationDetailsOfUser, nil, error_handling.InternalServerError
+	}
+	var organization response.Organization
+	organization.OrganizationMembers = &[]*response.OrganizationMember{}
+	for rows.Next() {
+		organizationMember := &response.OrganizationMember{}
+		err = rows.Scan(&organization.OrganizationID, &organization.Name, &organization.OwnerID, &organization.CreatedAt, &organization.Privacy, &organization.UpdatedBy, &organization.UpdatedAt, &organizationMember.Role, &organizationMember.UserID)
+		if err != nil {
+			return organizationDetailsOfUser, nil, err
+		}
+		allMemberIDs = append(allMemberIDs, organizationMember.UserID)
+		*organization.OrganizationMembers = append(*organization.OrganizationMembers, organizationMember)
+	}
+	organizationDetailsOfUser.Organization = organization
+	return organizationDetailsOfUser, allMemberIDs, nil
+}
+
+func FetchOragnizationListOfUsers(db *sql.DB, userIDs []string) ([]response.OrganizationListOfUser, error) {
+	rows, err := db.Query("SELECT user_id,name,role,organization_id FROM public.organization INNER JOIN public.member AS org_member on org_member.organization_id = organization.id WHERE org_member.user_id = ANY($1) ;", pq.Array(userIDs))
+	if err != nil {
+		return nil, error_handling.InternalServerError
+	}
+	userMap := make(map[string]response.OrganizationListOfUser)
+	var organizationListOfUsers []response.OrganizationListOfUser
+	for rows.Next() {
+		var organizationListOfUser response.OrganizationListOfUser
+		var organizationInfoOfUser response.OrganizationInfoOfUser
+		err = rows.Scan(&organizationListOfUser.UserID, &organizationInfoOfUser.Name, &organizationInfoOfUser.Role, &organizationInfoOfUser.OrganizationID)
+		if err != nil {
+			return nil, err
+		}
+		organizationListOfUserVal, ok := userMap[organizationListOfUser.UserID]
+		if !ok {
+			organizationListOfUser.Organizations = &[]response.OrganizationInfoOfUser{}
+			*organizationListOfUser.Organizations = append(*organizationListOfUser.Organizations, organizationInfoOfUser)
+			organizationListOfUsers = append(organizationListOfUsers, organizationListOfUser)
+			userMap[organizationListOfUser.UserID] = organizationListOfUser
+		} else {
+			*organizationListOfUserVal.Organizations = append(*organizationListOfUserVal.Organizations, organizationInfoOfUser)
+		}
+	}
+	return organizationListOfUsers, nil
+}
+
+func GetOrganizationNameByOrganizationID(db *sql.DB, organizationID string) (string, error) {
+	var organizationName string
+	err := db.QueryRow("SELECT name FROM public.organization WHERE id = $1;", organizationID).Scan(&organizationName)
+	if err != nil {
+		if err.Error() == "sql: no rows in result set" {
+			return "", error_handling.OrganizationDoesNotExist
+		}
+		return "", error_handling.InternalServerError
+	}
+	return organizationName,nil
 }

@@ -28,7 +28,7 @@ func RemoveMemberFromOrganization(tx *sql.Tx, memberID string, organizationID st
 }
 
 func LeaveOrganization(tx *sql.Tx, userID string, organizationID string) error {
-	return RemoveOrganizationMember(tx, organizationID, userID)
+	return RemoveOrganizationMember(tx, userID, organizationID)
 }
 
 func RemoveOrganizationMember(tx *sql.Tx, memberID string, organizationID string) error {
@@ -48,7 +48,7 @@ func RemoveOrganizationMember(tx *sql.Tx, memberID string, organizationID string
 
 func CheckRole(db *sql.DB, memberID string, organizationID string) (string, error) {
 	var role string
-	err := db.QueryRow("SELECT role from public.member WHERE user_id = $1 AND organization_id = $2", memberID, organizationID).Scan(&role)
+	err := db.QueryRow("SELECT role FROM public.member WHERE user_id = $1 AND organization_id = $2", memberID, organizationID).Scan(&role)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
 			return "", error_handling.OrganizationDoesNotExist
@@ -59,8 +59,20 @@ func CheckRole(db *sql.DB, memberID string, organizationID string) (string, erro
 }
 
 func IsMemberOfOrganization(db *sql.DB, memberID string, organizationID string) (bool, error) {
-	var role string
-	err := db.QueryRow("SELECT role from public.member WHERE user_id = $1 AND organization_id = $2", memberID, organizationID).Scan(&role)
+	var id string
+	err := db.QueryRow("SELECT role FROM public.member WHERE user_id = $1 AND organization_id = $2", memberID, organizationID).Scan(&id)
+	if err != nil {
+		if err.Error() == "sql: no rows in result set" {
+			return false, nil
+		}
+		return false, error_handling.InternalServerError
+	}
+	return true, nil
+}
+
+func IsMemberInvitedByOrganization(db *sql.DB, memberID string, organizationID string) (bool, error) {
+	var id string
+	err := db.QueryRow("SELECT id FROM public.invitation WHERE invitee = $1 AND organization_id = $2", memberID, organizationID).Scan(&id)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
 			return false, nil

@@ -51,3 +51,38 @@ func (c *UserController) UpdateOrganizationDetails(w http.ResponseWriter, r *htt
 	error_handling.ErrorMessageResponse(w, error_handling.NoAccessRights)
 }
 
+func (c *UserController) DeleteOrganization(w http.ResponseWriter, r *http.Request) {
+	// userID := r.Context().Value(middleware.UserCtxKey).(string)
+	// organizationID := request.OrganizationID{
+	// 	OrganizationID: chi.URLParam(r, "organization"),
+	// }
+	// err := utils.BodyReadAndValidate(r.Body, &organizationID, nil)
+	// if err != nil {
+	// 	error_handling.ErrorMessageResponse(w, err)
+	// 	return
+	// }
+	// role, err := c.repo.CheckRole(userID, organizationID.OrganizationID)
+	// if err != nil {
+	// 	error_handling.ErrorMessageResponse(w, err)
+	// 	return
+	// }
+	// if !(role == "owner") {
+	// 	error_handling.ErrorMessageResponse(w, error_handling.OwnerAccessRights)
+	// 	return
+	// }
+	// organizationName, err := c.repo.GetOrganizationNameByOrganizationID(organizationID.OrganizationID)
+	// if err != nil {
+	// 	error_handling.ErrorMessageResponse(w, err)
+	// 	return
+	// }
+	// jwtToken, err := middleware.CreateJWT("User", "OTP for delete organization")
+	// if err != nil {
+	// 	error_handling.ErrorMessageResponse(w, err)
+	// 	return
+	// }
+	// body, err := internal.CallAnotherService(jwtToken, "http://localhost:8000/users/", organizationName, "POST")
+	// if err != nil {
+	// 	error_handling.ErrorMessageResponse(w, err)
+	// 	return
+	// }
+}

@@ -5,5 +5,9 @@ type SuccessResponse struct {
 }
 
 type OrganizationID struct {
-	OrganizationID string `json:"organizationID"  validate:"required" `
+	OrganizationID string `json:"organizationID"  `
+}
+
+type JWTToken struct {
+	JWTToken string `json:"jwtToken"  `
 }

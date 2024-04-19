@@ -1,14 +1,12 @@
 package controller
 
 import (
-	"encoding/json"
 	"net/http"
 	error_handling "organization/error"
-	"organization/internal"
 	"organization/middleware"
-	"organization/model/request"
-	"organization/model/response"
 	"organization/utils"
+
+	"github.com/go-chi/chi"
 )
 
 func (c *UserController) FetchAllOrganizationDetailsOfCurrentUser(w http.ResponseWriter, r *http.Request) {
@@ -18,29 +16,11 @@ func (c *UserController) FetchAllOrganizationDetailsOfCurrentUser(w http.Respons
 		error_handling.ErrorMessageResponse(w, err)
 		return
 	}
-	jwtToken, err := middleware.CreateJWT()
+	userDetails, err := utils.CreateJWTAndCallAnotherService(allMemberIDs, "User", "User details of organization")
 	if err != nil {
 		error_handling.ErrorMessageResponse(w, err)
 		return
 	}
-	userIDs := request.UserIDs{
-		UserIDs: allMemberIDs,
-	}
-
-	userIDsByte, _ := json.MarshalIndent(userIDs, "", "  ")
-	body, err := internal.CallAnotherService(jwtToken, "http://localhost:8000/users/details", userIDsByte, "POST")
-	if err != nil {
-		error_handling.ErrorMessageResponse(w, err)
-		return
-	}
-
-	userDetails := make(map[string]response.UserDetails)
-	err = json.Unmarshal(body, &userDetails)
-	if err != nil {
-		error_handling.ErrorMessageResponse(w, error_handling.UnmarshalError)
-		return
-	}
-
 	for _, organizations := range allOrganizationDetailsOfUser.Organizations {
 		for _, organizationMember := range *organizations.OrganizationMembers {
 			organizationMember.Firstname = userDetails[organizationMember.UserID].Firstname
@@ -50,4 +30,26 @@ func (c *UserController) FetchAllOrganizationDetailsOfCurrentUser(w http.Respons
 		}
 	}
 	utils.SuccessMessageResponse(w, 200, allOrganizationDetailsOfUser)
+}
+
+func (c *UserController) FetchOrganizationDetailsOfCurrentUser(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value(middleware.UserCtxKey).(string)
+	organizationID := chi.URLParam(r, "organization")
+	organizationDetailsOfUser, memberIDs, err := c.repo.FetchOrganizationDetailsOfCurrentUser(userID, organizationID)
+	if err != nil {
+		error_handling.ErrorMessageResponse(w, err)
+		return
+	}
+	userDetails, err := utils.CreateJWTAndCallAnotherService(memberIDs, "User", "User details of organization")
+	if err != nil {
+		error_handling.ErrorMessageResponse(w, err)
+		return
+	}
+	for _, organizationMember := range *organizationDetailsOfUser.Organization.OrganizationMembers {
+		organizationMember.Firstname = userDetails[organizationMember.UserID].Firstname
+		organizationMember.Lastname = userDetails[organizationMember.UserID].Lastname
+		organizationMember.Fullname = userDetails[organizationMember.UserID].Fullname
+		organizationMember.Username = userDetails[organizationMember.UserID].Username
+	}
+	utils.SuccessMessageResponse(w, 200, organizationDetailsOfUser)
 }

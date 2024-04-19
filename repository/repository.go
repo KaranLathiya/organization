@@ -21,6 +21,9 @@ type Repository interface {
 	DeleteSentInvitationsAndRemoveMemberFromOrganization(organizationID string, memberID string) error
 	TransferOwnership(organizationID string, memberID string, userID string) error
 	FetchAllOrganizationDetailsOfUser(userID string) (response.AllOrganizationDetailsOfUser, []string, error)
+	FetchOrganizationDetailsOfCurrentUser(userID string, organizationID string) (response.OrganizationDetailsOfUser, []string, error)
+	FetchOragnizationListOfUsers(userIDs []string) ([]response.OrganizationListOfUser, error)
+	GetOrganizationNameByOrganizationID(organizationID string) (string,error)
 }
 
 type Repositories struct {
@@ -191,4 +194,30 @@ func (r *Repositories) TransferOwnership(organizationID string, memberID string,
 
 func (r *Repositories) FetchAllOrganizationDetailsOfUser(userID string) (response.AllOrganizationDetailsOfUser, []string, error) {
 	return dal.FetchAllOrganizationDetailsOfUser(r.db, userID)
+}
+
+func (r *Repositories) FetchOrganizationDetailsOfCurrentUser(userID string, organizationID string) (response.OrganizationDetailsOfUser, []string, error) {
+	isMemberOfOrganization, err := dal.IsMemberOfOrganization(r.db, userID, organizationID)
+	if err != nil {
+		return response.OrganizationDetailsOfUser{}, nil, err
+	}
+	if !isMemberOfOrganization {
+		isMemberInvitedByOrganization, err := dal.IsMemberInvitedByOrganization(r.db, userID, organizationID)
+		if err != nil {
+			return response.OrganizationDetailsOfUser{}, nil, err
+		}
+		if !isMemberInvitedByOrganization {
+			return response.OrganizationDetailsOfUser{}, nil, error_handling.NotMemberOfOrganization
+		}
+		return dal.FetchOnlyOrganizationDetailsOfCurrentUser(r.db, userID, organizationID)
+	}
+	return dal.FetchOrganizationDetailsOfCurrentUser(r.db, userID, organizationID)
+}
+
+func (r *Repositories) FetchOragnizationListOfUsers(userIDs []string) ([]response.OrganizationListOfUser, error) {
+	return dal.FetchOragnizationListOfUsers(r.db, userIDs)
+}
+
+func (r *Repositories) GetOrganizationNameByOrganizationID(organizationID string) (string, error) {
+	return dal.GetOrganizationNameByOrganizationID(r.db, organizationID)
 }
