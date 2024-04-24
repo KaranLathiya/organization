@@ -23,17 +23,17 @@ func (c *UserController) InvitationToOrganization(w http.ResponseWriter, r *http
 		error_handling.ErrorMessageResponse(w, err)
 		return
 	}
-	if role == "admin" || role == "owner" {
+	if role == constant.ORGANIZATION_ROLE_ADMIN || role == constant.ORGANIZATION_ROLE_OWNER {
 		done, err := c.repo.InvitationToOrganization(invitationToOrganization, userID)
 		if err != nil {
 			error_handling.ErrorMessageResponse(w, err)
 			return
 		}
 		if !done {
-			utils.SuccessMessageResponse(w, 200, response.SuccessResponse{Message: constant.ALREADY_INVITED})
+			utils.SuccessMessageResponse(w, http.StatusOK, response.SuccessResponse{Message: constant.ALREADY_INVITED})
 			return
 		}
-		utils.SuccessMessageResponse(w, 200, response.SuccessResponse{Message: constant.INVITED})
+		utils.SuccessMessageResponse(w, http.StatusOK, response.SuccessResponse{Message: constant.INVITED})
 		return
 	}
 	error_handling.ErrorMessageResponse(w, error_handling.NoAccessRights)
@@ -47,7 +47,7 @@ func (c *UserController) TrackAllInvitations(w http.ResponseWriter, r *http.Requ
 		error_handling.ErrorMessageResponse(w, err)
 		return
 	}
-	utils.SuccessMessageResponse(w, 200, invitationDetailsList)
+	utils.SuccessMessageResponse(w, http.StatusOK, invitationDetailsList)
 }
 
 func (c *UserController) RespondToInvitation(w http.ResponseWriter, r *http.Request) {
@@ -61,13 +61,13 @@ func (c *UserController) RespondToInvitation(w http.ResponseWriter, r *http.Requ
 		error_handling.ErrorMessageResponse(w, err)
 		return
 	}
-	if respondToInvitation.Respond == "accept" {
+	if respondToInvitation.Respond == constant.INVITATION_ACCEPT {
 		err = c.repo.AcceptInvitationAndJoinTheOrganization(userID, respondToInvitation.OrganizationID)
 		if err != nil {
 			error_handling.ErrorMessageResponse(w, err)
 			return
 		}
-		utils.SuccessMessageResponse(w, 200, response.SuccessResponse{Message: constant.INVITATION_ACCEPTED})
+		utils.SuccessMessageResponse(w, http.StatusOK, response.SuccessResponse{Message: constant.INVITATION_ACCEPTED})
 		return
 	}
 	err = c.repo.RejectInvitation(userID, respondToInvitation.OrganizationID)
@@ -75,5 +75,5 @@ func (c *UserController) RespondToInvitation(w http.ResponseWriter, r *http.Requ
 		error_handling.ErrorMessageResponse(w, err)
 		return
 	}
-	utils.SuccessMessageResponse(w, 200, response.SuccessResponse{Message: constant.INVITATION_REJECTED})
+	utils.SuccessMessageResponse(w, http.StatusOK, response.SuccessResponse{Message: constant.INVITATION_REJECTED})
 }

@@ -12,12 +12,12 @@ func InitializeRouter(controllers *controller.UserController) *chi.Mux {
 	router := chi.NewRouter()
 	router.Route("/", func(r chi.Router) {
 		r.Use(middleware.HandleCORS)
-		r.Use(middleware.Authentication)
-		r.Route("/organization", func(r chi.Router) {
 
+		r.Route("/organization", func(r chi.Router) {
+			r.Use(middleware.Authentication)
 			r.Post("/", controllers.CreateOrganization)
 			r.Put("/", controllers.UpdateOrganizationDetails)
-			r.Delete("/{organization}", controllers.DeleteOrganization)
+			r.Post("/otp              ", controllers.OTPForDeleteOrganization)
 
 			r.Route("/members", func(r chi.Router) {
 
@@ -40,16 +40,17 @@ func InitializeRouter(controllers *controller.UserController) *chi.Mux {
 		})
 
 		r.Route("/member", func(r chi.Router) {
+			r.Use(middleware.Authentication)
 			r.Get("/organizations", controllers.FetchAllOrganizationDetailsOfCurrentUser)
 			r.Get("/{organization}/organization", controllers.FetchOrganizationDetailsOfCurrentUser)
 		})
 
-		r.Route("/members", func(r chi.Router) {
-			r.Post("/organizations", controllers.FetchOragnizationListOfUsers)
-
-			r.Route("/jwt", func(r chi.Router) {
-				r.Get("/", controllers.GetJWT)
+		r.Route("/internal", func(r chi.Router) {
+			r.Get("/jwt", controllers.GetJWT)
+			r.Route("/members", func(r chi.Router) {
+				r.Post("/organizations", controllers.FetchOragnizationListOfUsers)	
 			})
+			r.Delete("/organization/{organization}", controllers.DeleteOrganization)
 		})
 
 		r.MethodNotAllowed(func(w http.ResponseWriter, r *http.Request) {
@@ -64,5 +65,4 @@ func InitializeRouter(controllers *controller.UserController) *chi.Mux {
 	})
 
 	return router
-
 }

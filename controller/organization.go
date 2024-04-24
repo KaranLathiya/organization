@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"encoding/json"
 	"net/http"
 	"organization/constant"
 	error_handling "organization/error"
@@ -23,7 +24,7 @@ func (c *UserController) CreateOrganization(w http.ResponseWriter, r *http.Reque
 		error_handling.ErrorMessageResponse(w, err)
 		return
 	}
-	utils.SuccessMessageResponse(w, 200, response.OrganizationID{OrganizationID: organizationId})
+	utils.SuccessMessageResponse(w, http.StatusOK, response.OrganizationID{OrganizationID: organizationId})
 }
 
 func (c *UserController) UpdateOrganizationDetails(w http.ResponseWriter, r *http.Request) {
@@ -39,50 +40,66 @@ func (c *UserController) UpdateOrganizationDetails(w http.ResponseWriter, r *htt
 		error_handling.ErrorMessageResponse(w, err)
 		return
 	}
-	if role == "admin" || role == "owner" {
+	if role == constant.ORGANIZATION_ROLE_ADMIN || role == constant.ORGANIZATION_ROLE_OWNER {
 		err := c.repo.UpdateOrganizationDetails(userID, updateOrganizationDetails)
 		if err != nil {
 			error_handling.ErrorMessageResponse(w, err)
 			return
 		}
-		utils.SuccessMessageResponse(w, 200, response.SuccessResponse{Message: constant.ORGANIZATION_DETAILS_UPDATED})
+		utils.SuccessMessageResponse(w, http.StatusOK, response.SuccessResponse{Message: constant.ORGANIZATION_DETAILS_UPDATED})
 		return
 	}
 	error_handling.ErrorMessageResponse(w, error_handling.NoAccessRights)
 }
 
-func (c *UserController) DeleteOrganization(w http.ResponseWriter, r *http.Request) {
-	// userID := r.Context().Value(middleware.UserCtxKey).(string)
-	// organizationID := request.OrganizationID{
-	// 	OrganizationID: chi.URLParam(r, "organization"),
-	// }
-	// err := utils.BodyReadAndValidate(r.Body, &organizationID, nil)
-	// if err != nil {
-	// 	error_handling.ErrorMessageResponse(w, err)
-	// 	return
-	// }
-	// role, err := c.repo.CheckRole(userID, organizationID.OrganizationID)
-	// if err != nil {
-	// 	error_handling.ErrorMessageResponse(w, err)
-	// 	return
-	// }
-	// if !(role == "owner") {
-	// 	error_handling.ErrorMessageResponse(w, error_handling.OwnerAccessRights)
-	// 	return
-	// }
-	// organizationName, err := c.repo.GetOrganizationNameByOrganizationID(organizationID.OrganizationID)
-	// if err != nil {
-	// 	error_handling.ErrorMessageResponse(w, err)
-	// 	return
-	// }
-	// jwtToken, err := middleware.CreateJWT("User", "OTP for delete organization")
-	// if err != nil {
-	// 	error_handling.ErrorMessageResponse(w, err)
-	// 	return
-	// }
-	// body, err := internal.CallAnotherService(jwtToken, "http://localhost:8000/users/", organizationName, "POST")
-	// if err != nil {
-	// 	error_handling.ErrorMessageResponse(w, err)
-	// 	return
-	// }
+func (c *UserController) OTPForDeleteOrganization(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value(middleware.UserCtxKey).(string)
+	var organizationID request.OrganizationID
+	err := utils.BodyReadAndValidate(r.Body, &organizationID, nil)
+	if err != nil {
+		error_handling.ErrorMessageResponse(w, err)
+		return
+	}
+	role, err := c.repo.CheckRole(userID, organizationID.OrganizationID)
+	if err != nil {
+		error_handling.ErrorMessageResponse(w, err)
+		return
+	}
+	if !(role == constant.ORGANIZATION_ROLE_OWNER) {
+		error_handling.ErrorMessageResponse(w, error_handling.OwnerAccessRights)
+		return
+	}
+	organizationName, err := c.repo.GetOrganizationNameByOrganizationID(organizationID.OrganizationID)
+	if err != nil {
+		error_handling.ErrorMessageResponse(w, err)
+		return
+	}
+	jwtToken, err := utils.CreateJWT("User", "OTP for delete organization")
+	if err != nil {
+		error_handling.ErrorMessageResponse(w, err)
+		return
+	}
+	deleteOrganization := request.DeleteOrganization{
+		OrganizationID: organizationID.OrganizationID,
+		OwnerID:        userID,
+		Name:           organizationName,
+	}
+	deleteOrganizationByte, err := json.MarshalIndent(deleteOrganization, "", "  ")
+	if err != nil {
+		error_handling.ErrorMessageResponse(w, error_handling.MarshalError)
+		return
+	}
+	body, err := utils.CallAnotherService(jwtToken, constant.USER_SERVICE_BASE_URL+"internal/user/otp", deleteOrganizationByte, http.MethodPost)
+	if err != nil {
+		error_handling.ErrorMessageResponse(w, err)
+		return
+	}
+	var successResponse response.SuccessResponse
+	err = json.Unmarshal(body, &successResponse)
+	if err != nil {
+		error_handling.ErrorMessageResponse(w, error_handling.UnmarshalError)
+		return
+	}
+	utils.SuccessMessageResponse(w, http.StatusOK, successResponse)
 }
+

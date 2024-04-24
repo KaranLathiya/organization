@@ -13,7 +13,7 @@ func ExternalURLCall(method string, url string, bodyDataRequest interface{}, bod
 	bodyDataByte, _ := json.MarshalIndent(bodyDataRequest, "", " ")
 	var req *http.Request
 	var err error
-	if method == "GET" {
+	if method == http.MethodGet {
 		req, err = http.NewRequest(method, url, nil)
 	} else {
 		req, err = http.NewRequest(method, url, bytes.NewBuffer(bodyDataByte))
@@ -22,7 +22,7 @@ func ExternalURLCall(method string, url string, bodyDataRequest interface{}, bod
 		return nil, error_handling.InternalServerError
 	}
 	res, err := http.DefaultClient.Do(req)
-	if err != nil || res.StatusCode == 400 || res.StatusCode == 404 {
+	if err != nil || res.StatusCode == http.StatusBadRequest || res.StatusCode == http.StatusNotFound ||  res.StatusCode == http.StatusInternalServerError {
 		return nil, error_handling.InternalServerError
 	}
 	defer res.Body.Close()

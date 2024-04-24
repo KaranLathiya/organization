@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"organization/config"
 	"organization/controller"
-	"organization/database"
+	"organization/db"
 	"organization/repository"
 	"organization/routes"
 )
@@ -15,13 +15,11 @@ func main() {
 	if err != nil {
 		panic(fmt.Sprintf("cannot load config: %v", err))
 	}
-	db := database.Connect()
+	db := db.Connect()
 	defer db.Close()
 	repos := repository.InitRepositories(db)
 	controllers := controller.InitControllers(repos)
 	router := routes.InitializeRouter(controllers)
-	http.Handle("/", router)
 	fmt.Println("server started")
-	http.ListenAndServe(":"+config.ConfigVal.Port, nil)
-
+	http.ListenAndServe(":"+config.ConfigVal.Port, router)
 }

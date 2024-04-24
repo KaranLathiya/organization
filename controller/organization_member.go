@@ -29,13 +29,13 @@ func (c *UserController) UpdateMemberRole(w http.ResponseWriter, r *http.Request
 		error_handling.ErrorMessageResponse(w, err)
 		return
 	}
-	if role == "admin" || role == "owner" {
+	if role == constant.ORGANIZATION_ROLE_ADMIN || role == constant.ORGANIZATION_ROLE_OWNER {
 		err := c.repo.UpdateMemberRole(userID, updateMemberRole.Role, updateMemberRole.OrganizationID, updateMemberRole.MemberID)
 		if err != nil {
 			error_handling.ErrorMessageResponse(w, err)
 			return
 		}
-		utils.SuccessMessageResponse(w, 200, response.SuccessResponse{Message: constant.ROLE_UPDATED})
+		utils.SuccessMessageResponse(w, http.StatusOK, response.SuccessResponse{Message: constant.ROLE_UPDATED})
 		return
 	}
 	error_handling.ErrorMessageResponse(w, error_handling.NoAccessRights)
@@ -56,7 +56,7 @@ func (c *UserController) LeaveOrganization(w http.ResponseWriter, r *http.Reques
 		error_handling.ErrorMessageResponse(w, err)
 		return
 	}
-	if role == "owner" {
+	if role == constant.ORGANIZATION_ROLE_OWNER {
 		error_handling.ErrorMessageResponse(w, error_handling.OwnerLeaveRestriction)
 		return
 	}
@@ -65,7 +65,7 @@ func (c *UserController) LeaveOrganization(w http.ResponseWriter, r *http.Reques
 		error_handling.ErrorMessageResponse(w, err)
 		return
 	}
-	utils.SuccessMessageResponse(w, 200, response.SuccessResponse{Message: constant.LEAVE_ORGANIZATION})
+	utils.SuccessMessageResponse(w, http.StatusOK, response.SuccessResponse{Message: constant.LEAVE_ORGANIZATION})
 }
 
 func (c *UserController) RemoveMemberFromOrganization(w http.ResponseWriter, r *http.Request) {
@@ -88,13 +88,13 @@ func (c *UserController) RemoveMemberFromOrganization(w http.ResponseWriter, r *
 		error_handling.ErrorMessageResponse(w, err)
 		return
 	}
-	if role == "admin" || role == "owner" {
+	if role == constant.ORGANIZATION_ROLE_ADMIN || role == constant.ORGANIZATION_ROLE_OWNER {
 		err := c.repo.DeleteSentInvitationsAndRemoveMemberFromOrganization(removeMemberFromOrganization.OrganizationID, removeMemberFromOrganization.MemberID)
 		if err != nil {
 			error_handling.ErrorMessageResponse(w, err)
 			return
 		}
-		utils.SuccessMessageResponse(w, 200, response.SuccessResponse{Message: constant.REMOVED_FROM_ORGANIZATION})
+		utils.SuccessMessageResponse(w, http.StatusOK, response.SuccessResponse{Message: constant.REMOVED_FROM_ORGANIZATION})
 		return
 	}
 	error_handling.ErrorMessageResponse(w, error_handling.NoAccessRights)
@@ -117,5 +117,5 @@ func (c *UserController) TransferOwnership(w http.ResponseWriter, r *http.Reques
 		error_handling.ErrorMessageResponse(w, err)
 		return
 	}
-	utils.SuccessMessageResponse(w, 200, response.SuccessResponse{Message: constant.OWNERSHIP_TRANSFERRED})
+	utils.SuccessMessageResponse(w, http.StatusOK, response.SuccessResponse{Message: constant.OWNERSHIP_TRANSFERRED})
 }

@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"organization/model/request"
 	"organization/model/response"
-	"organization/utils"
 
 	error_handling "organization/error"
 
@@ -13,7 +12,7 @@ import (
 
 func CreateOrganization(tx *sql.Tx, createOrganization request.CreateOrganization, ownerID string) (string, error) {
 	var organizationID string
-	err := tx.QueryRow("INSERT INTO public.organization (name, owner_id, created_at, privacy) VALUES ($1, $2, $3, $4) returning id", createOrganization.Name, ownerID, utils.CurrentUTCTime(0), createOrganization.Privacy).Scan(&organizationID)
+	err := tx.QueryRow("INSERT INTO public.organization (name, owner_id, privacy) VALUES ($1, $2, $3) returning id", createOrganization.Name, ownerID, createOrganization.Privacy).Scan(&organizationID)
 	if err != nil {
 		return "", error_handling.InternalServerError
 	}
@@ -148,5 +147,20 @@ func GetOrganizationNameByOrganizationID(db *sql.DB, organizationID string) (str
 		}
 		return "", error_handling.InternalServerError
 	}
-	return organizationName,nil
+	return organizationName, nil
+}
+
+func DeleteOrganizationByOrganizationID(db *sql.DB, organizationID string) error {
+	result, err := db.Exec("DELETE FROM public.organization WHERE id = $1;", organizationID)
+	if err != nil {
+		return error_handling.InternalServerError
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return error_handling.InternalServerError
+	}
+	if rowsAffected == 0 {
+		return error_handling.InvalidDetails
+	}
+	return nil
 }

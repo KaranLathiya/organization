@@ -5,14 +5,13 @@ import (
 	error_handling "organization/error"
 	"organization/model/request"
 	"organization/model/response"
-	"organization/utils"
 
 	"github.com/lib/pq"
 )
 
 func InvitationToOrganization(db *sql.DB, invitationToOrganization request.InvitationToOrganization, userID string) (bool, error) {
 	var id string
-	err := db.QueryRow("INSERT INTO public.invitation (invitee, organization_id, role, invited_at, invited_by) VALUES ($1, $2, $3, $4, $5) returning id", invitationToOrganization.Invitee, invitationToOrganization.OrganizationID, invitationToOrganization.Role, utils.CurrentUTCTime(0), userID).Scan(&id)
+	err := db.QueryRow("INSERT INTO public.invitation (invitee, organization_id, role, invited_by) VALUES ($1, $2, $3, $4) returning id", invitationToOrganization.Invitee, invitationToOrganization.OrganizationID, invitationToOrganization.Role, userID).Scan(&id)
 	if dbErr, ok := err.(*pq.Error); ok {
 		errCode := dbErr.Code
 		switch errCode {

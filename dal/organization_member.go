@@ -10,7 +10,7 @@ import (
 
 func AddMemberToOrganization(tx *sql.Tx, organizationID string, memberID string, role string, invitedBy *string) error {
 	var id string
-	err := tx.QueryRow("INSERT INTO public.member (organization_id, user_id, role, joined_at, invited_by) VALUES ($1, $2, $3, $4, $5) returning id", organizationID, memberID, role, utils.CurrentUTCTime(0), invitedBy).Scan(&id)
+	err := tx.QueryRow("INSERT INTO public.member (organization_id, user_id, role, invited_by) VALUES ($1, $2, $3, $4) returning id", organizationID, memberID, role, invitedBy).Scan(&id)
 	if dbErr, ok := err.(*pq.Error); ok {
 		errCode := dbErr.Code
 		switch errCode {
@@ -24,7 +24,7 @@ func AddMemberToOrganization(tx *sql.Tx, organizationID string, memberID string,
 }
 
 func RemoveMemberFromOrganization(tx *sql.Tx, memberID string, organizationID string) error {
-	return RemoveOrganizationMember(tx, organizationID, memberID)
+	return RemoveOrganizationMember(tx, memberID, organizationID)
 }
 
 func LeaveOrganization(tx *sql.Tx, userID string, organizationID string) error {
@@ -83,7 +83,7 @@ func IsMemberInvitedByOrganization(db *sql.DB, memberID string, organizationID s
 }
 
 func UpdateMemberRole(db *sql.DB, userID string, role string, organizationID string, memberID string) error {
-	result, err := db.Exec("UPDATE public.member SET role = $1, updated_by = $2, updated_at = $3 WHERE user_id = $4 AND organization_id = $5;", role, userID, utils.CurrentUTCTime(0), memberID, organizationID)
+	result, err := db.Exec("UPDATE public.member SET role = $1, updated_by = $2, updated_at = $3 WHERE user_id = $4 AND organization_id = $5;", role, userID, utils.AddMinutesToCurrentUTCTime(0), memberID, organizationID)
 	if err != nil {
 		return error_handling.InternalServerError
 	}
@@ -98,7 +98,7 @@ func UpdateMemberRole(db *sql.DB, userID string, role string, organizationID str
 }
 
 func UpdateMemberRoleWithTransaction(tx *sql.Tx, userID string, role string, organizationID string, memberID string) error {
-	result, err := tx.Exec("UPDATE public.member SET role = $1, updated_by = $2, updated_at = $3 WHERE user_id = $4 AND organization_id = $5;", role, userID, utils.CurrentUTCTime(0), memberID, organizationID)
+	result, err := tx.Exec("UPDATE public.member SET role = $1, updated_by = $2, updated_at = $3 WHERE user_id = $4 AND organization_id = $5;", role, userID, utils.AddMinutesToCurrentUTCTime(0), memberID, organizationID)
 	if err != nil {
 		return error_handling.InternalServerError
 	}

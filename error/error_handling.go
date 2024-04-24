@@ -65,7 +65,7 @@ func CreateCustomError(errorMessage string, statusCode int, invalidData ...Inval
 }
 
 var (
-	UnmarshalError       = CreateCustomError("Error while unmarshling data.", http.StatusUnauthorized)
+	UnmarshalError       = CreateCustomError("Error while unmarshling data.", http.StatusInternalServerError)
 	InternalServerError  = CreateCustomError("Internal Server Error.", http.StatusInternalServerError)
 	OTPGenerateError     = CreateCustomError("Error at generating OTP.", http.StatusInternalServerError)
 	BcryptError          = CreateCustomError("Error at bcypting.", http.StatusInternalServerError)
@@ -80,6 +80,7 @@ var (
 	InvalidDetails       = CreateCustomError("Invalid details provided.", http.StatusBadRequest)
 	AlreadyBlocked       = CreateCustomError("Already blocked.", http.StatusBadRequest)
 
+	MarshalError               = CreateCustomError("Error while marshling data.", http.StatusInternalServerError)
 	OrganizationDoesNotExist   = CreateCustomError("Organization does not exist.", http.StatusNotFound)
 	NoAccessRights             = CreateCustomError("Member doesn't have permission due to the role.", http.StatusForbidden)
 	AlreadyMember              = CreateCustomError("Already member of the organization.", http.StatusConflict)
@@ -90,33 +91,9 @@ var (
 	OwnerRemoveRestriction     = CreateCustomError("Can't remove the owner.", http.StatusForbidden)
 	OwnerAccessRights          = CreateCustomError("Only owner have permission.", http.StatusForbidden)
 	NotMemberOfOrganization    = CreateCustomError("You aren't member of organization.", http.StatusNotFound)
-	JWTErrSignatureInvalid = CreateCustomError("Invalid signature on jwt token.", http.StatusUnauthorized)
-	JWTTokenInvalid        = CreateCustomError("Invalid jwt token.", http.StatusBadRequest)
-	JWTTokenInvalidDetails = CreateCustomError("Invalid jwt token details.", http.StatusBadRequest)
+	JWTErrSignatureInvalid     = CreateCustomError("Invalid signature on jwt token.", http.StatusUnauthorized)
+	JWTTokenInvalid            = CreateCustomError("Invalid jwt token.", http.StatusBadRequest)
+	JWTTokenInvalidDetails     = CreateCustomError("Invalid jwt token details.", http.StatusBadRequest)
 	// InvitationAlreadyExist   = CreateCustomError("Already invited the member.", http.StatusOK)
 
 )
-
-// func DatabaseError(err error) error {
-// 	if dbErr, ok := err.(*pq.Error); ok {
-// 		errCode := dbErr.Code
-// 		switch errCode {
-// 		case "23502":
-// 			// not-null constraint violation
-// 			return CreateCustomError("Some required data was left out", 400)
-
-// 		case "23503":
-// 			// foreign key violation
-// 			return CreateCustomError("This record can't be changed because another record refers to it", 409)
-
-// 		case "23505":
-// 			// unique constraint violation
-// 			return CreateCustomError("This record contains duplicated data that conflicts with what is already in the database", 409)
-
-// 		case "23514":
-// 			// check constraint violation
-// 			return CreateCustomError("This record contains inconsistent or out-of-range data", 400)
-// 		}
-// 	}
-// 	return CreateCustomError("Internal server error", 500)
-// }

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"organization/constant"
 	"organization/dal"
 	error_handling "organization/error"
 	"organization/model/request"
@@ -23,7 +24,8 @@ type Repository interface {
 	FetchAllOrganizationDetailsOfUser(userID string) (response.AllOrganizationDetailsOfUser, []string, error)
 	FetchOrganizationDetailsOfCurrentUser(userID string, organizationID string) (response.OrganizationDetailsOfUser, []string, error)
 	FetchOragnizationListOfUsers(userIDs []string) ([]response.OrganizationListOfUser, error)
-	GetOrganizationNameByOrganizationID(organizationID string) (string,error)
+	GetOrganizationNameByOrganizationID(organizationID string) (string, error)
+	DeleteOrganization(organizationID string) error
 }
 
 type Repositories struct {
@@ -45,7 +47,7 @@ func (r *Repositories) CreateOrganization(createOrganization request.CreateOrgan
 	if err != nil {
 		return "", err
 	}
-	err = dal.AddMemberToOrganization(tx, organizationID, ownerID, "owner", nil)
+	err = dal.AddMemberToOrganization(tx, organizationID, ownerID, constant.ORGANIZATION_ROLE_OWNER, nil)
 	if err != nil {
 		return "", err
 	}
@@ -109,7 +111,7 @@ func (r *Repositories) UpdateMemberRole(userID string, role string, organization
 	if err != nil {
 		return err
 	}
-	if roleOfUser == "owner" {
+	if roleOfUser == constant.ORGANIZATION_ROLE_OWNER {
 		return error_handling.OwnerRoleChangeRestriction
 	}
 	return dal.UpdateMemberRole(r.db, userID, role, organizationID, memberID)
@@ -141,7 +143,7 @@ func (r *Repositories) DeleteSentInvitationsAndRemoveMemberFromOrganization(orga
 	if err != nil {
 		return err
 	}
-	if roleOfMember == "owner" {
+	if roleOfMember == constant.ORGANIZATION_ROLE_OWNER {
 		return error_handling.OwnerRemoveRestriction
 	}
 	tx, err := r.db.Begin()
@@ -169,7 +171,7 @@ func (r *Repositories) TransferOwnership(organizationID string, memberID string,
 	if err != nil {
 		return err
 	}
-	if roleOfMember != "owner" {
+	if roleOfMember != constant.ORGANIZATION_ROLE_OWNER {
 		return error_handling.OwnerAccessRights
 	}
 	tx, err := r.db.Begin()
@@ -177,11 +179,11 @@ func (r *Repositories) TransferOwnership(organizationID string, memberID string,
 		return error_handling.InternalServerError
 	}
 	defer tx.Rollback()
-	err = dal.UpdateMemberRoleWithTransaction(tx, userID, "admin", organizationID, userID)
+	err = dal.UpdateMemberRoleWithTransaction(tx, userID, constant.ORGANIZATION_ROLE_ADMIN, organizationID, userID)
 	if err != nil {
 		return err
 	}
-	err = dal.UpdateMemberRoleWithTransaction(tx, userID, "owner", organizationID, memberID)
+	err = dal.UpdateMemberRoleWithTransaction(tx, userID, constant.ORGANIZATION_ROLE_OWNER, organizationID, memberID)
 	if err != nil {
 		return err
 	}
@@ -220,4 +222,8 @@ func (r *Repositories) FetchOragnizationListOfUsers(userIDs []string) ([]respons
 
 func (r *Repositories) GetOrganizationNameByOrganizationID(organizationID string) (string, error) {
 	return dal.GetOrganizationNameByOrganizationID(r.db, organizationID)
+}
+
+func (r *Repositories) DeleteOrganization(organizationID string) error {
+	return dal.DeleteOrganizationByOrganizationID(r.db, organizationID)
 }
