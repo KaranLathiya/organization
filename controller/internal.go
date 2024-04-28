@@ -11,7 +11,7 @@ import (
 	"github.com/go-chi/chi"
 )
 
-func (c *UserController) GetJWT(w http.ResponseWriter, r *http.Request) {
+func (c *UserController) GetJWTForOragnizationListOfUsers(w http.ResponseWriter, r *http.Request) {
 	jwtToken, err := utils.CreateJWT("Organization", "Organization list of users")
 	if err != nil {
 		error_handling.ErrorMessageResponse(w, err)

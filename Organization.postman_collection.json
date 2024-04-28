@@ -1,0 +1,559 @@
+{
+	"info": {
+		"_postman_id": "d37ac188-2b02-4ae1-9805-1e938fade671",
+		"name": "Organization",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "30678853"
+	},
+	"item": [
+		{
+			"name": "create organization",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Auth-user",
+						"value": "962455281112776705",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\":\"k133\",\r\n    \"privacy\":\"private\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:9000/organization",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"organization"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "update organization details",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Auth-user",
+						"value": "962455281112776705",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"organizationID\": \"963017174158475265\",\r\n    \"name\":\"org12\",\r\n    \"privacy\":\"public\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:9000/organization/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"organization",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "create organization invitation",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Auth-user",
+						"value": "962455281112776705",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"organizationID\": \"963017174158475265\",\r\n    \"role\":\"admin\",\r\n    \"invitee\":\"958414696278327297\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:9000/organization/members/invitation/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"organization",
+						"members",
+						"invitation",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "track invitations",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Auth-user",
+						"value": "958414696278327297",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:9000/organization/member/invitation",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"organization",
+						"member",
+						"invitation"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "respond to invitation (accept)",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Auth-user",
+						"value": "958414696278327297",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:9000/organization/member/invitation?organization=962702819215704065&respond=accept",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"organization",
+						"member",
+						"invitation"
+					],
+					"query": [
+						{
+							"key": "organization",
+							"value": "962702819215704065"
+						},
+						{
+							"key": "respond",
+							"value": "accept"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "respond to invitation (reject)",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Auth-user",
+						"value": "958414696278327297",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:9000/organization/member/invitation?organization=962702819215704065&respond=reject",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"organization",
+						"member",
+						"invitation"
+					],
+					"query": [
+						{
+							"key": "organization",
+							"value": "962702819215704065"
+						},
+						{
+							"key": "respond",
+							"value": "reject"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "update organization member role",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Auth-user",
+						"value": "962455281112776705",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"organizationID\": \"962702819215704065\",\r\n    \"role\":\"owner\",\r\n    \"memberID\":\"958414696278327297\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:9000/organization/members/role",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"organization",
+						"members",
+						"role"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "remove organization member role Copy",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Auth-user",
+						"value": "962455281112776705",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:9000/organization/members/?organization=962702819215704065&member=958414696278327297",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"organization",
+						"members",
+						""
+					],
+					"query": [
+						{
+							"key": "organization",
+							"value": "962702819215704065"
+						},
+						{
+							"key": "member",
+							"value": "958414696278327297"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "leave organization",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Auth-user",
+						"value": "958414696278327297",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:9000/organization/member/962702819215704065/leave",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"organization",
+						"member",
+						"962702819215704065",
+						"leave"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "otp for delete organization",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Auth-user",
+						"value": "962455281112776705",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"organizationID\":\"962702819215704065\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:9000/organization/otp",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"organization",
+						"otp"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "all organizations",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Auth-user",
+						"value": "123",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:9000/member/organizations",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"member",
+						"organizations"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "organization details",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Auth-user",
+						"value": "962455281112776705",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:9000/member/963017174158475265/organization",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"member",
+						"963017174158475265",
+						"organization"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "organizations list (get jwt)",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Auth-user",
+						"value": "123",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:9000/internal/members/organizations/jwt",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"internal",
+						"members",
+						"organizations",
+						"jwt"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "organization list",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Auth-user",
+						"value": "123",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJPcmdhbml6YXRpb24iLCJleHAiOjE3MTM4NjYyMTAsInN1YiI6Ik9yZ2FuaXphdGlvbiBsaXN0IG9mIHVzZXJzIn0.F3JQ1UBxqar1EZSo4_TdQ-r2lxi2IxAOee0I1TJOB3A",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"userIDs\": [\"958413185190068225\" ,\"958414696278327297\", \"958414696278327297\", \"123\"]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:9000/internal/members/organizations",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"internal",
+						"members",
+						"organizations"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

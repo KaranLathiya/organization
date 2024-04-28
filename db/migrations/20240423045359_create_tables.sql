@@ -49,8 +49,12 @@ CREATE TABLE IF NOT EXISTS public.member (
 
 -- migrate:down
 
-DROP TABLE IF EXISTS public.organization;
-
 DROP TABLE IF EXISTS public.invitation;
 
 DROP TABLE IF EXISTS public.member;
+
+DROP TABLE IF EXISTS public.organization;
+
+DROP TYPE IF EXISTS public.privacy;
+
+DROP TYPE IF EXISTS public."role";

@@ -17,12 +17,11 @@ func InitializeRouter(controllers *controller.UserController) *chi.Mux {
 			r.Use(middleware.Authentication)
 			r.Post("/", controllers.CreateOrganization)
 			r.Put("/", controllers.UpdateOrganizationDetails)
-			r.Post("/otp              ", controllers.OTPForDeleteOrganization)
+			r.Post("/otp", controllers.OTPForDeleteOrganization)
 
 			r.Route("/members", func(r chi.Router) {
 
 				r.Delete("/", controllers.RemoveMemberFromOrganization)
-				r.Delete("/{organization}/leave", controllers.LeaveOrganization)
 
 				r.Route("/role", func(r chi.Router) {
 					r.Put("/", controllers.UpdateMemberRole)
@@ -31,6 +30,14 @@ func InitializeRouter(controllers *controller.UserController) *chi.Mux {
 
 				r.Route("/invitation", func(r chi.Router) {
 					r.Post("/", controllers.InvitationToOrganization)
+				})
+
+			})
+
+			r.Route("/member", func(r chi.Router) {
+				r.Delete("/{organization}/leave", controllers.LeaveOrganization)
+
+				r.Route("/invitation", func(r chi.Router) {
 					r.Get("/", controllers.TrackAllInvitations)
 					r.Delete("/", controllers.RespondToInvitation)
 				})
@@ -46,11 +53,17 @@ func InitializeRouter(controllers *controller.UserController) *chi.Mux {
 		})
 
 		r.Route("/internal", func(r chi.Router) {
-			r.Get("/jwt", controllers.GetJWT)
 			r.Route("/members", func(r chi.Router) {
-				r.Post("/organizations", controllers.FetchOragnizationListOfUsers)	
+
+				r.Route("/organizations", func(r chi.Router) {
+					r.Post("/", controllers.FetchOragnizationListOfUsers)
+					r.Get("/jwt", controllers.GetJWTForOragnizationListOfUsers)
+				})
+
 			})
+
 			r.Delete("/organization/{organization}", controllers.DeleteOrganization)
+
 		})
 
 		r.MethodNotAllowed(func(w http.ResponseWriter, r *http.Request) {
