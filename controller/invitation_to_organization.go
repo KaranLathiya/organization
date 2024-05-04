@@ -18,19 +18,24 @@ func (c *UserController) InvitationToOrganization(w http.ResponseWriter, r *http
 		error_handling.ErrorMessageResponse(w, err)
 		return
 	}
-	role, err := c.repo.CheckRole(userID, invitationToOrganization.OrganizationID)
+	roleOfUser, err := c.repo.CheckRoleOfMember(userID, invitationToOrganization.OrganizationID)
 	if err != nil {
 		error_handling.ErrorMessageResponse(w, err)
 		return
 	}
-	if role == constant.ORGANIZATION_ROLE_ADMIN || role == constant.ORGANIZATION_ROLE_OWNER {
-		done, err := c.repo.InvitationToOrganization(invitationToOrganization, userID)
+	if roleOfUser == constant.ORGANIZATION_ROLE_ADMIN || roleOfUser == constant.ORGANIZATION_ROLE_OWNER {
+		isMemberOfOrganization, err := c.repo.IsMemberOfOrganization(invitationToOrganization.Invitee, invitationToOrganization.OrganizationID)
 		if err != nil {
 			error_handling.ErrorMessageResponse(w, err)
 			return
 		}
-		if !done {
-			utils.SuccessMessageResponse(w, http.StatusOK, response.SuccessResponse{Message: constant.ALREADY_INVITED})
+		if isMemberOfOrganization {
+			error_handling.ErrorMessageResponse(w, error_handling.AlreadyMember)
+			return
+		}
+		err = c.repo.InvitationToOrganization(invitationToOrganization, userID)
+		if err != nil {
+			error_handling.ErrorMessageResponse(w, err)
 			return
 		}
 		utils.SuccessMessageResponse(w, http.StatusOK, response.SuccessResponse{Message: constant.INVITED})
@@ -41,7 +46,6 @@ func (c *UserController) InvitationToOrganization(w http.ResponseWriter, r *http
 
 func (c *UserController) TrackAllInvitations(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value(middleware.UserCtxKey).(string)
-
 	invitationDetailsList, err := c.repo.TrackAllInvitations(userID)
 	if err != nil {
 		error_handling.ErrorMessageResponse(w, err)
@@ -52,16 +56,13 @@ func (c *UserController) TrackAllInvitations(w http.ResponseWriter, r *http.Requ
 
 func (c *UserController) RespondToInvitation(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value(middleware.UserCtxKey).(string)
-	respondToInvitation := request.RespondToInvitation{
-		OrganizationID: r.FormValue("organization"),
-		Respond:        r.FormValue("respond"),
-	}
-	err := utils.ValidateStruct(respondToInvitation, nil)
+	var respondToInvitation request.RespondToInvitation
+	err := utils.BodyReadAndValidate(r.Body, &respondToInvitation, nil)
 	if err != nil {
 		error_handling.ErrorMessageResponse(w, err)
 		return
 	}
-	if respondToInvitation.Respond == constant.INVITATION_ACCEPT {
+	if *respondToInvitation.InvitationAccept {
 		err = c.repo.AcceptInvitationAndJoinTheOrganization(userID, respondToInvitation.OrganizationID)
 		if err != nil {
 			error_handling.ErrorMessageResponse(w, err)

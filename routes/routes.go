@@ -16,53 +16,54 @@ func InitializeRouter(controllers *controller.UserController) *chi.Mux {
 		r.Route("/organization", func(r chi.Router) {
 			r.Use(middleware.Authentication)
 			r.Post("/", controllers.CreateOrganization)
-			r.Put("/", controllers.UpdateOrganizationDetails)
-			r.Post("/otp", controllers.OTPForDeleteOrganization)
+			r.Put("/", controllers.UpdateOrganization)
+			r.Post("/delete/otp", controllers.OTPForDeleteOrganization)
 
 			r.Route("/members", func(r chi.Router) {
 
 				r.Delete("/", controllers.RemoveMemberFromOrganization)
+				r.Put("/transfer-ownership", controllers.TransferOwnership)
 
 				r.Route("/role", func(r chi.Router) {
 					r.Put("/", controllers.UpdateMemberRole)
-					r.Put("/owner", controllers.TransferOwnership)
-				})
-
-				r.Route("/invitation", func(r chi.Router) {
-					r.Post("/", controllers.InvitationToOrganization)
 				})
 
 			})
 
-			r.Route("/member", func(r chi.Router) {
-				r.Delete("/{organization}/leave", controllers.LeaveOrganization)
+			r.Route("/invitation", func(r chi.Router) {
+				r.Post("/", controllers.InvitationToOrganization)
+			})
 
-				r.Route("/invitation", func(r chi.Router) {
-					r.Get("/", controllers.TrackAllInvitations)
-					r.Delete("/", controllers.RespondToInvitation)
-				})
-
+			r.Route("/{organization-id}/member", func(r chi.Router) {
+				r.Delete("/leave", controllers.LeaveOrganization)
 			})
 
 		})
 
-		r.Route("/member", func(r chi.Router) {
+		r.Route("/user", func(r chi.Router) {
 			r.Use(middleware.Authentication)
 			r.Get("/organizations", controllers.FetchAllOrganizationDetailsOfCurrentUser)
-			r.Get("/{organization}/organization", controllers.FetchOrganizationDetailsOfCurrentUser)
+			r.Get("/organization/{organization-id}", controllers.FetchOrganizationDetailsOfCurrentUser)
+
+			r.Route("/invitations", func(r chi.Router) {
+				r.Get("/", controllers.TrackAllInvitations)
+				r.Post("/", controllers.RespondToInvitation)
+			})
+
 		})
 
 		r.Route("/internal", func(r chi.Router) {
-			r.Route("/members", func(r chi.Router) {
+
+			r.Get("/jwt", controllers.GetJWTForOragnizationService)
+			r.Route("/users", func(r chi.Router) {
 
 				r.Route("/organizations", func(r chi.Router) {
 					r.Post("/", controllers.FetchOragnizationListOfUsers)
-					r.Get("/jwt", controllers.GetJWTForOragnizationListOfUsers)
 				})
 
 			})
 
-			r.Delete("/organization/{organization}", controllers.DeleteOrganization)
+			r.Delete("/organization/{organization-id}", controllers.DeleteOrganization)
 
 		})
 

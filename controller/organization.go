@@ -27,7 +27,7 @@ func (c *UserController) CreateOrganization(w http.ResponseWriter, r *http.Reque
 	utils.SuccessMessageResponse(w, http.StatusOK, response.OrganizationID{OrganizationID: organizationId})
 }
 
-func (c *UserController) UpdateOrganizationDetails(w http.ResponseWriter, r *http.Request) {
+func (c *UserController) UpdateOrganization(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value(middleware.UserCtxKey).(string)
 	var updateOrganizationDetails request.UpdateOrganizationDetails
 	err := utils.BodyReadAndValidate(r.Body, &updateOrganizationDetails, nil)
@@ -35,12 +35,12 @@ func (c *UserController) UpdateOrganizationDetails(w http.ResponseWriter, r *htt
 		error_handling.ErrorMessageResponse(w, err)
 		return
 	}
-	role, err := c.repo.CheckRole(userID, updateOrganizationDetails.OrganizationID)
+	roleOfUser, err := c.repo.CheckRoleOfMember(userID, updateOrganizationDetails.OrganizationID)
 	if err != nil {
 		error_handling.ErrorMessageResponse(w, err)
 		return
 	}
-	if role == constant.ORGANIZATION_ROLE_ADMIN || role == constant.ORGANIZATION_ROLE_OWNER {
+	if roleOfUser == constant.ORGANIZATION_ROLE_ADMIN || roleOfUser == constant.ORGANIZATION_ROLE_OWNER {
 		err := c.repo.UpdateOrganizationDetails(userID, updateOrganizationDetails)
 		if err != nil {
 			error_handling.ErrorMessageResponse(w, err)
@@ -60,12 +60,12 @@ func (c *UserController) OTPForDeleteOrganization(w http.ResponseWriter, r *http
 		error_handling.ErrorMessageResponse(w, err)
 		return
 	}
-	role, err := c.repo.CheckRole(userID, organizationID.OrganizationID)
+	roleOfUser, err := c.repo.CheckRoleOfMember(userID, organizationID.OrganizationID)
 	if err != nil {
 		error_handling.ErrorMessageResponse(w, err)
 		return
 	}
-	if !(role == constant.ORGANIZATION_ROLE_OWNER) {
+	if !(roleOfUser == constant.ORGANIZATION_ROLE_OWNER) {
 		error_handling.ErrorMessageResponse(w, error_handling.OwnerAccessRights)
 		return
 	}
@@ -74,7 +74,7 @@ func (c *UserController) OTPForDeleteOrganization(w http.ResponseWriter, r *http
 		error_handling.ErrorMessageResponse(w, err)
 		return
 	}
-	jwtToken, err := utils.CreateJWT("User", "OTP for delete organization")
+	jwtToken, err := utils.CreateJWT("Organization", "Organization")
 	if err != nil {
 		error_handling.ErrorMessageResponse(w, err)
 		return

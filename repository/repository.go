@@ -11,15 +11,16 @@ import (
 
 type Repository interface {
 	CreateOrganization(organizationCreate request.CreateOrganization, ownerID string) (string, error)
-	CheckRole(memberID string, organizationID string) (string, error)
-	InvitationToOrganization(invitationToOrganization request.InvitationToOrganization, userID string) (bool, error)
+	CheckRoleOfMember(memberID string, organizationID string) (string, error)
+	IsMemberOfOrganization(memberID string, organizationID string) (bool, error)
+	InvitationToOrganization(invitationToOrganization request.InvitationToOrganization, userID string) error
 	TrackAllInvitations(userID string) ([]response.InvitationDetails, error)
 	UpdateOrganizationDetails(userID string, updateOrganizationDetails request.UpdateOrganizationDetails) error
 	AcceptInvitationAndJoinTheOrganization(userID string, organizationID string) error
 	RejectInvitation(userID string, organizationID string) error
 	UpdateMemberRole(userID string, role string, organizationID string, memberID string) error
-	DeleteSentInvitationsAndLeaveOrganization(organizationID string, userID string) error
-	DeleteSentInvitationsAndRemoveMemberFromOrganization(organizationID string, memberID string) error
+	WithdrawSentInvitationsAndLeaveOrganization(organizationID string, userID string) error
+	WithdrawSentInvitationsAndRemoveMemberFromOrganization(organizationID string, memberID string) error
 	TransferOwnership(organizationID string, memberID string, userID string) error
 	FetchAllOrganizationDetailsOfUser(userID string) (response.AllOrganizationDetailsOfUser, []string, error)
 	FetchOrganizationDetailsOfCurrentUser(userID string, organizationID string) (response.OrganizationDetailsOfUser, []string, error)
@@ -58,18 +59,15 @@ func (r *Repositories) CreateOrganization(createOrganization request.CreateOrgan
 	return organizationID, nil
 }
 
-func (r *Repositories) CheckRole(userID string, organizationID string) (string, error) {
-	return dal.CheckRole(r.db, userID, organizationID)
+func (r *Repositories) CheckRoleOfMember(userID string, organizationID string) (string, error) {
+	return dal.CheckRoleOfMember(r.db, userID, organizationID)
 }
 
-func (r *Repositories) InvitationToOrganization(invitationToOrganization request.InvitationToOrganization, userID string) (bool, error) {
-	isMemberOfOrganization, err := dal.IsMemberOfOrganization(r.db, invitationToOrganization.Invitee, invitationToOrganization.OrganizationID)
-	if err != nil {
-		return false, err
-	}
-	if isMemberOfOrganization {
-		return false, error_handling.AlreadyMember
-	}
+func (r *Repositories) IsMemberOfOrganization(memberID string, organizationID string) (bool, error) {
+	return dal.IsMemberOfOrganization(r.db, memberID, organizationID)
+}
+
+func (r *Repositories) InvitationToOrganization(invitationToOrganization request.InvitationToOrganization, userID string) error {
 	return dal.InvitationToOrganization(r.db, invitationToOrganization, userID)
 }
 
@@ -107,23 +105,17 @@ func (r *Repositories) RejectInvitation(userID string, organizationID string) er
 }
 
 func (r *Repositories) UpdateMemberRole(userID string, role string, organizationID string, memberID string) error {
-	roleOfUser, err := dal.CheckRole(r.db, memberID, organizationID)
-	if err != nil {
-		return err
-	}
-	if roleOfUser == constant.ORGANIZATION_ROLE_OWNER {
-		return error_handling.OwnerRoleChangeRestriction
-	}
 	return dal.UpdateMemberRole(r.db, userID, role, organizationID, memberID)
 }
 
-func (r *Repositories) DeleteSentInvitationsAndLeaveOrganization(organizationID string, userID string) error {
+//if member wanted to leave organization then first all invitations sent by member should be with withdrawn     
+func (r *Repositories) WithdrawSentInvitationsAndLeaveOrganization(organizationID string, userID string) error {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return error_handling.InternalServerError
 	}
 	defer tx.Rollback()
-	err = dal.DeleteSentInvitations(tx, userID, organizationID)
+	err = dal.WithdrawSentInvitations(tx, userID, organizationID)
 	if err != nil {
 		return err
 	}
@@ -138,20 +130,14 @@ func (r *Repositories) DeleteSentInvitationsAndLeaveOrganization(organizationID 
 	return nil
 }
 
-func (r *Repositories) DeleteSentInvitationsAndRemoveMemberFromOrganization(organizationID string, memberID string) error {
-	roleOfMember, err := dal.CheckRole(r.db, memberID, organizationID)
-	if err != nil {
-		return err
-	}
-	if roleOfMember == constant.ORGANIZATION_ROLE_OWNER {
-		return error_handling.OwnerRemoveRestriction
-	}
+//if member removed from organization then first all invitations sent by member should be withdrawn   
+func (r *Repositories) WithdrawSentInvitationsAndRemoveMemberFromOrganization(organizationID string, memberID string) error {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return error_handling.InternalServerError
 	}
 	defer tx.Rollback()
-	err = dal.DeleteSentInvitations(tx, memberID, organizationID)
+	err = dal.WithdrawSentInvitations(tx, memberID, organizationID)
 	if err != nil {
 		return err
 	}
@@ -167,13 +153,6 @@ func (r *Repositories) DeleteSentInvitationsAndRemoveMemberFromOrganization(orga
 }
 
 func (r *Repositories) TransferOwnership(organizationID string, memberID string, userID string) error {
-	roleOfMember, err := dal.CheckRole(r.db, memberID, organizationID)
-	if err != nil {
-		return err
-	}
-	if roleOfMember != constant.ORGANIZATION_ROLE_OWNER {
-		return error_handling.OwnerAccessRights
-	}
 	tx, err := r.db.Begin()
 	if err != nil {
 		return error_handling.InternalServerError
@@ -184,6 +163,10 @@ func (r *Repositories) TransferOwnership(organizationID string, memberID string,
 		return err
 	}
 	err = dal.UpdateMemberRoleWithTransaction(tx, userID, constant.ORGANIZATION_ROLE_OWNER, organizationID, memberID)
+	if err != nil {
+		return err
+	}
+	err = dal.ChangeOrganizationOwner(tx, memberID, userID, organizationID)
 	if err != nil {
 		return err
 	}
@@ -225,5 +208,5 @@ func (r *Repositories) GetOrganizationNameByOrganizationID(organizationID string
 }
 
 func (r *Repositories) DeleteOrganization(organizationID string) error {
-	return dal.DeleteOrganizationByOrganizationID(r.db, organizationID)
+	return dal.DeleteOrganization(r.db, organizationID)
 }

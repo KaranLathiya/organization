@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"organization/model/request"
 	"organization/model/response"
+	"organization/utils"
 
 	error_handling "organization/error"
 
@@ -19,8 +20,16 @@ func CreateOrganization(tx *sql.Tx, createOrganization request.CreateOrganizatio
 	return organizationID, nil
 }
 
-func UpdateOrganizationDetails(db *sql.DB, memberID string, updateOrganizationDetails request.UpdateOrganizationDetails) error {
-	_, err := db.Exec("UPDATE public.organization SET privacy=$1,name=$2 WHERE id=$3 ;", updateOrganizationDetails.Privacy, updateOrganizationDetails.Name, updateOrganizationDetails.OrganizationID)
+func UpdateOrganizationDetails(db *sql.DB, userID string, updateOrganizationDetails request.UpdateOrganizationDetails) error {
+	_, err := db.Exec("UPDATE public.organization SET privacy=$1,name=$2,updated_by=$3,updated_at=$4 WHERE id=$5 ;", updateOrganizationDetails.Privacy, updateOrganizationDetails.Name, userID, utils.AddMinutesToCurrentUTCTime(0), updateOrganizationDetails.OrganizationID)
+	if err != nil {
+		return error_handling.InternalServerError
+	}
+	return nil
+}
+
+func ChangeOrganizationOwner(tx *sql.Tx, memberID string, userID string, organizationID string) error {
+	_, err := tx.Exec("UPDATE public.organization SET owner_id=$1,updated_by=$2,updated_at=$3 WHERE id=$4 ;", memberID, userID, utils.AddMinutesToCurrentUTCTime(0), organizationID)
 	if err != nil {
 		return error_handling.InternalServerError
 	}
@@ -150,7 +159,7 @@ func GetOrganizationNameByOrganizationID(db *sql.DB, organizationID string) (str
 	return organizationName, nil
 }
 
-func DeleteOrganizationByOrganizationID(db *sql.DB, organizationID string) error {
+func DeleteOrganization(db *sql.DB, organizationID string) error {
 	result, err := db.Exec("DELETE FROM public.organization WHERE id = $1;", organizationID)
 	if err != nil {
 		return error_handling.InternalServerError

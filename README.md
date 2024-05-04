@@ -61,19 +61,24 @@ To delete organization by owner (get otp)  --POST
 
     http://localhost:9000/organization/otp
 
+To leave from organization  --DELETE
+
+    http://localhost:9000/organization/{organization-id}/member/leave
+
+
 ## For invitation
 
 To invite users to join the organizaton --POST
 
-    http://localhost:9000/organization/members/invitation/
+    http://localhost:9000/organization/invitation/
 
-To accept/reject invitation of organizaton --DELETE
+To accept/reject invitation of organizaton --POST
 
-    http://localhost:9000/organization/member/invitation/
+    http://localhost:9000/user/invitations/
     
 To get list of all invitations --GET
 
-    http://localhost:9000/organization/member/invitation/
+    http://localhost:9000/user/invitations/
 
 ## For update organization's member role 
 
@@ -83,36 +88,36 @@ To update organization's member role (by owner/admin) --PUT
     
 To transfer organization's ownership (by owner) --PUT
 
-    http://localhost:9000/organization/members/role/owner
+    http://localhost:9000/organization/members/transfer-ownership
 
 ## For remove member from organization
 
 To remove member from organization --DELETE
 
-    http://localhost:9000/organization/members
+    http://localhost:9000/organization/members/
 
 ## For organization details of user
 
 To get all organizations details of user --GET
 
-    http://localhost:9000/member/organizations
+    http://localhost:9000/user/organizations
     
 To get organization details of user --GET
 
-    http://localhost:9000/member/{organization}/organization
+    http://localhost:9000/user/organization/{organization-id}
 
 ## Public apis 
 
 To jwt for  organizations details of users --GET
 
-    http://localhost:9000/internal/members/organizations/jwt
+    http://localhost:9000/internal/jwt
     
 To get organizations details of users  --POST
 
-    http://localhost:9000/internal/members/organizations
+    http://localhost:9000/internal/users/organizations/
     
 To delete organization  --POST
 
-    http://localhost:9000/internal/organization/{organization}
+    http://localhost:9000/internal/organization/{organization-id}
 
 

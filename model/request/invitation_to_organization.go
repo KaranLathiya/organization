@@ -7,6 +7,6 @@ type InvitationToOrganization struct {
 }
 
 type RespondToInvitation struct {
-	Respond        string   `json:"Respond" validate:"required|in:accept,reject"`
-	OrganizationID string `json:"organizationID" validate:"required"`
+	InvitationAccept *bool  `json:"invitationAccept" validate:"required|isBool" `
+	OrganizationID   string `json:"organizationID" validate:"required"`
 }

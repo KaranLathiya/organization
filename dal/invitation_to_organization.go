@@ -9,7 +9,7 @@ import (
 	"github.com/lib/pq"
 )
 
-func InvitationToOrganization(db *sql.DB, invitationToOrganization request.InvitationToOrganization, userID string) (bool, error) {
+func InvitationToOrganization(db *sql.DB, invitationToOrganization request.InvitationToOrganization, userID string) error {
 	var id string
 	err := db.QueryRow("INSERT INTO public.invitation (invitee, organization_id, role, invited_by) VALUES ($1, $2, $3, $4) returning id", invitationToOrganization.Invitee, invitationToOrganization.OrganizationID, invitationToOrganization.Role, userID).Scan(&id)
 	if dbErr, ok := err.(*pq.Error); ok {
@@ -17,16 +17,16 @@ func InvitationToOrganization(db *sql.DB, invitationToOrganization request.Invit
 		switch errCode {
 		case "23503":
 			// foreign key violation
-			return false, error_handling.OrganizationDoesNotExist
+			return error_handling.OrganizationDoesNotExist
 
 		case "23505":
 			// unique constraint violation
-			return false, nil
+			return error_handling.AlreadyInvited
 
 		}
-		return false, error_handling.InternalServerError
+		return error_handling.InternalServerError
 	}
-	return true, nil
+	return nil
 }
 
 func TrackAllInvitations(db *sql.DB, userID string) ([]response.InvitationDetails, error) {
@@ -73,7 +73,7 @@ func RejectInvitation(db *sql.DB, userID string, organizationID string) error {
 	return nil
 }
 
-func DeleteSentInvitations(tx *sql.Tx, userID string, organizationID string) error {
+func WithdrawSentInvitations(tx *sql.Tx, userID string, organizationID string) error {
 	_, err := tx.Exec("DELETE FROM public.invitation WHERE invited_by = $1 AND organization_id = $2", userID, organizationID)
 	if err != nil {
 		return error_handling.InternalServerError

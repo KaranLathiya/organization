@@ -46,7 +46,7 @@ func RemoveOrganizationMember(tx *sql.Tx, memberID string, organizationID string
 	return nil
 }
 
-func CheckRole(db *sql.DB, memberID string, organizationID string) (string, error) {
+func CheckRoleOfMember(db *sql.DB, memberID string, organizationID string) (string, error) {
 	var role string
 	err := db.QueryRow("SELECT role FROM public.member WHERE user_id = $1 AND organization_id = $2", memberID, organizationID).Scan(&role)
 	if err != nil {

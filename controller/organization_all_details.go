@@ -16,7 +16,7 @@ func (c *UserController) FetchAllOrganizationDetailsOfCurrentUser(w http.Respons
 		error_handling.ErrorMessageResponse(w, err)
 		return
 	}
-	userDetails, err := utils.CreateJWTAndCallUserServiceForUserDetails(allMemberIDs, "User", "User details of organization")
+	userDetails, err := utils.CreateJWTAndCallUserServiceForUserDetails(allMemberIDs, "User", "User")
 	if err != nil {
 		error_handling.ErrorMessageResponse(w, err)
 		return
@@ -34,13 +34,13 @@ func (c *UserController) FetchAllOrganizationDetailsOfCurrentUser(w http.Respons
 
 func (c *UserController) FetchOrganizationDetailsOfCurrentUser(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value(middleware.UserCtxKey).(string)
-	organizationID := chi.URLParam(r, "organization")
+	organizationID := chi.URLParam(r, "organization-id")
 	organizationDetailsOfUser, memberIDs, err := c.repo.FetchOrganizationDetailsOfCurrentUser(userID, organizationID)
 	if err != nil {
 		error_handling.ErrorMessageResponse(w, err)
 		return
 	}
-	userDetails, err := utils.CreateJWTAndCallUserServiceForUserDetails(memberIDs, "User", "User details of organization")
+	userDetails, err := utils.CreateJWTAndCallUserServiceForUserDetails(memberIDs, "User", "User")
 	if err != nil {
 		error_handling.ErrorMessageResponse(w, err)
 		return

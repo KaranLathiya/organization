@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS public.organization (
 	owner_id VARCHAR(20) NOT NULL,
 	created_at TIMESTAMP NOT NULL DEFAULT current_timestamp():::TIMESTAMP,
 	privacy organization.public.privacy NOT NULL,
-	updated_by TIMESTAMP NULL,
+	updated_by VARCHAR(20) NULL,
 	updated_at TIMESTAMP NULL,
 	CONSTRAINT pk_organization_id PRIMARY KEY (id ASC)
 );

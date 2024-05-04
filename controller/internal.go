@@ -11,8 +11,8 @@ import (
 	"github.com/go-chi/chi"
 )
 
-func (c *UserController) GetJWTForOragnizationListOfUsers(w http.ResponseWriter, r *http.Request) {
-	jwtToken, err := utils.CreateJWT("Organization", "Organization list of users")
+func (c *UserController) GetJWTForOragnizationService(w http.ResponseWriter, r *http.Request) {
+	jwtToken, err := utils.CreateJWT("Organization", "Organization")
 	if err != nil {
 		error_handling.ErrorMessageResponse(w, err)
 		return
@@ -22,7 +22,7 @@ func (c *UserController) GetJWTForOragnizationListOfUsers(w http.ResponseWriter,
 
 func (c *UserController) FetchOragnizationListOfUsers(w http.ResponseWriter, r *http.Request) {
 	var userIDs request.UserIDs
-	err := utils.VerifyJWT(r.Header.Get("Authorization"), "Organization", "Organization list of users")
+	err := utils.VerifyJWT(r.Header.Get("Authorization"), "Organization", "Organization")
 	if err != nil {
 		error_handling.ErrorMessageResponse(w, err)
 		return
@@ -41,13 +41,13 @@ func (c *UserController) FetchOragnizationListOfUsers(w http.ResponseWriter, r *
 }
 
 func (c *UserController) DeleteOrganization(w http.ResponseWriter, r *http.Request) {
-	err := utils.VerifyJWT(r.Header.Get("Authorization"), "Organization", "Delete the organization")
+	err := utils.VerifyJWT(r.Header.Get("Authorization"), "Organization", "Organization")
 	if err != nil {
 		error_handling.ErrorMessageResponse(w, err)
 		return
 	}
 	organizationID := request.OrganizationID{
-		OrganizationID: chi.URLParam(r, "organization"),
+		OrganizationID: chi.URLParam(r, "organization-id"),
 	}
 	err = utils.ValidateStruct(&organizationID, nil)
 	if err != nil {
