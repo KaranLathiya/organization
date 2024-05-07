@@ -6,6 +6,7 @@ import (
 	"organization/config"
 	"organization/controller"
 	"organization/db"
+	"organization/internal/cronjob"
 	"organization/repository"
 	"organization/routes"
 )
@@ -18,6 +19,7 @@ func main() {
 	db := db.Connect()
 	defer db.Close()
 	repos := repository.InitRepositories(db)
+	go cronjob.OrganizationCountCronjob(repos)
 	controllers := controller.InitControllers(repos)
 	router := routes.InitializeRouter(controllers)
 	fmt.Println("server started")

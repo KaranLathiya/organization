@@ -27,6 +27,7 @@ type Repository interface {
 	FetchOragnizationListOfUsers(userIDs []string) ([]response.OrganizationListOfUser, error)
 	GetOrganizationNameByOrganizationID(organizationID string) (string, error)
 	DeleteOrganization(organizationID string) error
+	FindNumberOfOrganizationsCreatedToday() (int,error)
 }
 
 type Repositories struct {
@@ -209,4 +210,8 @@ func (r *Repositories) GetOrganizationNameByOrganizationID(organizationID string
 
 func (r *Repositories) DeleteOrganization(organizationID string) error {
 	return dal.DeleteOrganization(r.db, organizationID)
+}
+
+func (r *Repositories) FindNumberOfOrganizationsCreatedToday() (int,error) {
+	return dal.FindNumberOfOrganizationsCreatedToday(r.db)
 }

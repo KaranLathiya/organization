@@ -173,3 +173,15 @@ func DeleteOrganization(db *sql.DB, organizationID string) error {
 	}
 	return nil
 }
+
+func FindNumberOfOrganizationsCreatedToday(db *sql.DB) (int, error) {
+	var numberOfOrganizationsCreatedToday int
+	err := db.QueryRow("SELECT COUNT(*) AS num_organizations_created_today FROM organization WHERE DATE(created_at) = CURRENT_DATE;").Scan(&numberOfOrganizationsCreatedToday)
+	if err != nil {
+		// if err.Error() == "sql: no rows in result set" {
+		// 	return 0, error_handling.OrganizationDoesNotExist
+		// }
+		return 0, error_handling.InternalServerError
+	}
+	return numberOfOrganizationsCreatedToday, nil
+}
