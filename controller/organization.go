@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"organization/constant"
 	error_handling "organization/error"
+	microsoftauth "organization/internal/microsoft-auth"
 	"organization/middleware"
 	"organization/model/request"
 	"organization/model/response"
@@ -19,12 +20,47 @@ func (c *UserController) CreateOrganization(w http.ResponseWriter, r *http.Reque
 		error_handling.ErrorMessageResponse(w, err)
 		return
 	}
-	organizationId, err := c.repo.CreateOrganization(createOrganization, ownerID)
+	organizationID, err := c.repo.CreateOrganization(createOrganization, ownerID)
 	if err != nil {
 		error_handling.ErrorMessageResponse(w, err)
 		return
 	}
-	utils.SuccessMessageResponse(w, http.StatusOK, response.OrganizationID{OrganizationID: organizationId})
+	utils.SuccessMessageResponse(w, http.StatusOK, response.OrganizationID{OrganizationID: organizationID})
+	go func() {
+		jwtToken, err := utils.CreateJWT("User", "User")
+		if err != nil {
+			return
+		}
+		body, err := utils.CallAnotherService(jwtToken, constant.USER_SERVICE_BASE_URL+"internal/users/details/"+ownerID, nil, http.MethodGet)
+		if err != nil {
+			return
+		}
+		var organizationCreatorDetails response.OrganizationCreatorDetails
+		err = json.Unmarshal(body, &organizationCreatorDetails)
+		if err != nil {
+			return
+		}
+		refreshToken,err := c.repo.FetchMicrosoftRefreshToken()
+		if err != nil {
+			return
+		}
+		microsoftAuthToken, err := microsoftauth.GetAccessTokenUsingRefreshToken(refreshToken)
+		if err != nil {
+			return
+		}
+		go c.repo.StoreMicrosoftRefreshToken(microsoftAuthToken.RefreshToken)
+		var ownerPhoneNumberOrEmail string
+		if organizationCreatorDetails.Email != nil {
+			ownerPhoneNumberOrEmail = *organizationCreatorDetails.Email
+		} else if organizationCreatorDetails.PhoneNumber != nil && organizationCreatorDetails.CountryCode != nil {
+			ownerPhoneNumberOrEmail = *organizationCreatorDetails.CountryCode + *organizationCreatorDetails.PhoneNumber
+		}
+		messgae := utils.ChannelMessageTemplate(ownerPhoneNumberOrEmail, createOrganization.Name, organizationCreatorDetails.Fullname)
+		err = microsoftauth.SendMessageOnChannel(messgae, microsoftAuthToken.AccessToken)
+		if err != nil {
+			return
+		}
+	}()
 }
 
 func (c *UserController) UpdateOrganization(w http.ResponseWriter, r *http.Request) {
@@ -69,12 +105,12 @@ func (c *UserController) OTPForDeleteOrganization(w http.ResponseWriter, r *http
 		error_handling.ErrorMessageResponse(w, error_handling.OwnerAccessRights)
 		return
 	}
-	organizationName, err := c.repo.GetOrganizationNameByOrganizationID(organizationID.OrganizationID)
+	organizationName, err := c.repo.FetchOrganizationNameByOrganizationID(organizationID.OrganizationID)
 	if err != nil {
 		error_handling.ErrorMessageResponse(w, err)
 		return
 	}
-	jwtToken, err := utils.CreateJWT("Organization", "Organization")
+	jwtToken, err := utils.CreateJWT("User", "User")
 	if err != nil {
 		error_handling.ErrorMessageResponse(w, err)
 		return
@@ -102,4 +138,3 @@ func (c *UserController) OTPForDeleteOrganization(w http.ResponseWriter, r *http
 	}
 	utils.SuccessMessageResponse(w, http.StatusOK, successResponse)
 }
-

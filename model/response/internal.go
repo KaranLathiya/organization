@@ -8,6 +8,13 @@ type UserDetails struct {
 	Username  string `json:"username" `
 }
 
+type OrganizationCreatorDetails struct {
+	Fullname    string  `json:"fullname" `
+	Email       *string `json:"email" `
+	PhoneNumber *string `json:"phoneNumber" `	
+	CountryCode *string `json:"countryCode" `	
+}
+
 type OrganizationListOfUser struct {
 	UserID       string         `json:"userIDs" `
 	Organizations *[]OrganizationInfoOfUser `json:"organizations"`

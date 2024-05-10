@@ -31,5 +31,8 @@ func ExternalURLCall(method string, url string, bodyDataRequest interface{}, bod
 		return nil, err
 	}
 	err = json.Unmarshal(resBody, &bodyDataResponse)
-	return bodyDataResponse, err
+	if err != nil{
+		return nil,error_handling.UnmarshalError
+	}
+	return bodyDataResponse, nil
 }

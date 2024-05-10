@@ -10,6 +10,13 @@ CREATE TYPE IF NOT EXISTS public."role" AS ENUM (
 	'editor',
 	'viewer');
 
+CREATE TYPE IF NOT EXISTS public.event_type AS ENUM (
+	'microsoft_auth');
+
+CREATE TYPE IF NOT EXISTS public.token_type AS ENUM (
+	'refresh_token',
+	'access_token');
+
 CREATE TABLE IF NOT EXISTS public.organization (
 	id VARCHAR(20) NOT NULL DEFAULT unique_rowid(),
 	name VARCHAR(50) NOT NULL,
@@ -45,6 +52,15 @@ CREATE TABLE IF NOT EXISTS public.member (
 	CONSTRAINT pk_member_id PRIMARY KEY (id ASC),
 	CONSTRAINT fk_member_organization_id FOREIGN KEY (organization_id) REFERENCES public.organization(id) ON DELETE CASCADE,
 	UNIQUE INDEX uc_member_member_id_and_organization_id (user_id ASC, organization_id ASC)
+);
+
+CREATE TABLE IF NOT EXISTS public.token (
+	id VARCHAR(20) NOT NULL DEFAULT unique_rowid(),
+	token VARCHAR NOT NULL,
+	updated_at TIMESTAMP NOT NULL DEFAULT current_timestamp():::TIMESTAMP,
+	event_type organization.public.event_type NOT NULL,
+	token_type organization.public.token_type NOT NULL,
+	CONSTRAINT pk_token_id PRIMARY KEY (id ASC)
 );
 
 -- migrate:down

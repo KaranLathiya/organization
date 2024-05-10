@@ -17,7 +17,13 @@ func CallAnotherService(jwtToken string, url string, input []byte, method string
 	if input != nil {
 		buffer = bytes.NewBuffer(input)
 	}
-	req, err := http.NewRequest(method, url, buffer)
+	var req *http.Request
+	var err error
+	if method == http.MethodGet || method == http.MethodDelete {
+		req, err = http.NewRequest(method, url, nil)
+	} else {
+		req, err = http.NewRequest(method, url, buffer)
+	}
 	if err != nil {
 		return nil, error_handling.InternalServerError
 	}

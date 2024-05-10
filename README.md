@@ -120,4 +120,12 @@ To delete organization  --POST
 
     http://localhost:9000/internal/organization/{organization-id}
 
+## Microsoft Auth for sending message on channel
 
+To get authorization code using microsoft account --GET
+
+    http://localhost:9000/auth/microsoft
+    
+To get tokens using authorization code  --GET
+
+     http://localhost:9000/auth/microsoft/tokens/?code=

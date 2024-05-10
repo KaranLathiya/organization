@@ -23,4 +23,12 @@ const (
 	INVITATION_REJECT = "reject"
 
 	USER_SERVICE_BASE_URL = "http://localhost:8000/"
+
+	MICROSOFT_AUTH_URL           = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
+	MICROSOFT_GRAPH_API_BASE_URL = "https://graph.microsoft.com"
+
+	MICROSOFT_AUTH_EVENT_TYPE = "microsoft_auth"
+
+	TOKEN_TYPE_REFRESH_TOKEN = "refresh_token"
+	TOKEN_TYPE_ACCESS_TOKEN  = "access_token"
 )

@@ -19,7 +19,7 @@ func main() {
 	db := db.Connect()
 	defer db.Close()
 	repos := repository.InitRepositories(db)
-	go cronjob.OrganizationCountCronjob(repos)
+	go cronjob.InitializeCronjob(repos)
 	controllers := controller.InitControllers(repos)
 	router := routes.InitializeRouter(controllers)
 	fmt.Println("server started")

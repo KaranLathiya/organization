@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"organization/model/request"
 	"organization/model/response"
-	"organization/utils"
 
 	error_handling "organization/error"
 
@@ -21,7 +20,7 @@ func CreateOrganization(tx *sql.Tx, createOrganization request.CreateOrganizatio
 }
 
 func UpdateOrganizationDetails(db *sql.DB, userID string, updateOrganizationDetails request.UpdateOrganizationDetails) error {
-	_, err := db.Exec("UPDATE public.organization SET privacy=$1,name=$2,updated_by=$3,updated_at=$4 WHERE id=$5 ;", updateOrganizationDetails.Privacy, updateOrganizationDetails.Name, userID, utils.AddMinutesToCurrentUTCTime(0), updateOrganizationDetails.OrganizationID)
+	_, err := db.Exec("UPDATE public.organization SET privacy=$1,name=$2,updated_by=$3,updated_at= current_timestamp() WHERE id=$4 ;", updateOrganizationDetails.Privacy, updateOrganizationDetails.Name, userID, updateOrganizationDetails.OrganizationID)
 	if err != nil {
 		return error_handling.InternalServerError
 	}
@@ -29,7 +28,7 @@ func UpdateOrganizationDetails(db *sql.DB, userID string, updateOrganizationDeta
 }
 
 func ChangeOrganizationOwner(tx *sql.Tx, memberID string, userID string, organizationID string) error {
-	_, err := tx.Exec("UPDATE public.organization SET owner_id=$1,updated_by=$2,updated_at=$3 WHERE id=$4 ;", memberID, userID, utils.AddMinutesToCurrentUTCTime(0), organizationID)
+	_, err := tx.Exec("UPDATE public.organization SET owner_id=$1,updated_by=$2,updated_at= current_timestamp() WHERE id=$3 ;", memberID, userID, organizationID)
 	if err != nil {
 		return error_handling.InternalServerError
 	}
@@ -147,7 +146,7 @@ func FetchOragnizationListOfUsers(db *sql.DB, userIDs []string) ([]response.Orga
 	return organizationListOfUsers, nil
 }
 
-func GetOrganizationNameByOrganizationID(db *sql.DB, organizationID string) (string, error) {
+func FetchOrganizationNameByOrganizationID(db *sql.DB, organizationID string) (string, error) {
 	var organizationName string
 	err := db.QueryRow("SELECT name FROM public.organization WHERE id = $1;", organizationID).Scan(&organizationName)
 	if err != nil {

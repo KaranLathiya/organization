@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gookit/validate"
+	"github.com/lib/pq"
 	_ "github.com/lib/pq"
 )
 
@@ -95,6 +96,37 @@ var (
 	JWTErrSignatureInvalid     = CreateCustomError("Invalid signature on jwt token.", http.StatusUnauthorized)
 	JWTTokenInvalid            = CreateCustomError("Invalid jwt token.", http.StatusBadRequest)
 	JWTTokenInvalidDetails     = CreateCustomError("Invalid jwt token details.", http.StatusBadRequest)
+	NeedToLoginOnMicrosoft     = CreateCustomError("Need to login on microsoft.", http.StatusUnauthorized)
 	// InvitationAlreadyExist   = CreateCustomError("Already invited the member.", http.StatusOK)
 
+	NotNullConstraintError    = CreateCustomError("Some required data was left out", http.StatusBadRequest)
+	ForeignKeyConstraintError = CreateCustomError("This record can't be changed because another record refers to it", http.StatusConflict)
+	UniqueKeyConstraintError  = CreateCustomError("This record contains duplicated data that conflicts with what is already in the database", http.StatusConflict)
+	CheckConstraintError      = CreateCustomError("This record contains inconsistent or out-of-range data", http.StatusBadRequest)
 )
+
+func DatabaseErrorShow(err error) error {
+	if dbErr, ok := err.(*pq.Error); ok {
+		errCode := dbErr.Code
+
+		switch errCode {
+		case "23502":
+			// not-null constraint violation
+			return NotNullConstraintError
+
+		case "23503":
+			// foreign key violation
+			return ForeignKeyConstraintError
+
+		case "23505":
+			// unique constraint violation
+			return UniqueKeyConstraintError
+
+		case "23514":
+			// check constraint violation
+			return CheckConstraintError
+
+		}
+	}
+	return err
+}

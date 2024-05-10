@@ -25,9 +25,11 @@ type Repository interface {
 	FetchAllOrganizationDetailsOfUser(userID string) (response.AllOrganizationDetailsOfUser, []string, error)
 	FetchOrganizationDetailsOfCurrentUser(userID string, organizationID string) (response.OrganizationDetailsOfUser, []string, error)
 	FetchOragnizationListOfUsers(userIDs []string) ([]response.OrganizationListOfUser, error)
-	GetOrganizationNameByOrganizationID(organizationID string) (string, error)
+	FetchOrganizationNameByOrganizationID(organizationID string) (string, error)
 	DeleteOrganization(organizationID string) error
-	FindNumberOfOrganizationsCreatedToday() (int,error)
+	FindNumberOfOrganizationsCreatedToday() (int, error)
+	StoreMicrosoftRefreshToken(refreshToken string) error
+	FetchMicrosoftRefreshToken() (string, error)
 }
 
 type Repositories struct {
@@ -109,7 +111,7 @@ func (r *Repositories) UpdateMemberRole(userID string, role string, organization
 	return dal.UpdateMemberRole(r.db, userID, role, organizationID, memberID)
 }
 
-//if member wanted to leave organization then first all invitations sent by member should be with withdrawn     
+// if member wanted to leave organization then first all invitations sent by member should be with withdrawn
 func (r *Repositories) WithdrawSentInvitationsAndLeaveOrganization(organizationID string, userID string) error {
 	tx, err := r.db.Begin()
 	if err != nil {
@@ -131,7 +133,7 @@ func (r *Repositories) WithdrawSentInvitationsAndLeaveOrganization(organizationI
 	return nil
 }
 
-//if member removed from organization then first all invitations sent by member should be withdrawn   
+// if member removed from organization then first all invitations sent by member should be withdrawn
 func (r *Repositories) WithdrawSentInvitationsAndRemoveMemberFromOrganization(organizationID string, memberID string) error {
 	tx, err := r.db.Begin()
 	if err != nil {
@@ -204,14 +206,22 @@ func (r *Repositories) FetchOragnizationListOfUsers(userIDs []string) ([]respons
 	return dal.FetchOragnizationListOfUsers(r.db, userIDs)
 }
 
-func (r *Repositories) GetOrganizationNameByOrganizationID(organizationID string) (string, error) {
-	return dal.GetOrganizationNameByOrganizationID(r.db, organizationID)
+func (r *Repositories) FetchOrganizationNameByOrganizationID(organizationID string) (string, error) {
+	return dal.FetchOrganizationNameByOrganizationID(r.db, organizationID)
 }
 
 func (r *Repositories) DeleteOrganization(organizationID string) error {
 	return dal.DeleteOrganization(r.db, organizationID)
 }
 
-func (r *Repositories) FindNumberOfOrganizationsCreatedToday() (int,error) {
+func (r *Repositories) FindNumberOfOrganizationsCreatedToday() (int, error) {
 	return dal.FindNumberOfOrganizationsCreatedToday(r.db)
+}
+
+func (r *Repositories) StoreMicrosoftRefreshToken(refreshToken string) error {
+	return dal.StoreMicrosoftRefreshToken(r.db, refreshToken)
+}
+
+func (r *Repositories) FetchMicrosoftRefreshToken() (string, error) {
+	return dal.FetchMicrosoftRefreshToken(r.db)
 }

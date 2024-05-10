@@ -13,6 +13,11 @@ func InitializeRouter(controllers *controller.UserController) *chi.Mux {
 	router.Route("/", func(r chi.Router) {
 		r.Use(middleware.HandleCORS)
 
+		r.Route("/auth/microsoft", func(r chi.Router) {
+			r.Get("/", controllers.MicrosoftAuth)
+			r.Get("/tokens", controllers.GetMicrosoftTokens)
+		})
+		
 		r.Route("/organization", func(r chi.Router) {
 			r.Use(middleware.Authentication)
 			r.Post("/", controllers.CreateOrganization)

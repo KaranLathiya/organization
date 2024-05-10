@@ -12,19 +12,22 @@ import (
 func InvitationToOrganization(db *sql.DB, invitationToOrganization request.InvitationToOrganization, userID string) error {
 	var id string
 	err := db.QueryRow("INSERT INTO public.invitation (invitee, organization_id, role, invited_by) VALUES ($1, $2, $3, $4) returning id", invitationToOrganization.Invitee, invitationToOrganization.OrganizationID, invitationToOrganization.Role, userID).Scan(&id)
-	if dbErr, ok := err.(*pq.Error); ok {
-		errCode := dbErr.Code
-		switch errCode {
-		case "23503":
-			// foreign key violation
-			return error_handling.OrganizationDoesNotExist
+	if err != nil {
+		
+		if dbErr, ok := err.(*pq.Error); ok {
+			errCode := dbErr.Code
+			switch errCode {
+			case "23503":
+				// foreign key violation
+				return error_handling.OrganizationDoesNotExist
 
-		case "23505":
-			// unique constraint violation
-			return error_handling.AlreadyInvited
+			case "23505":
+				// unique constraint violation
+				return error_handling.AlreadyInvited
 
+			}
+			return error_handling.InternalServerError
 		}
-		return error_handling.InternalServerError
 	}
 	return nil
 }

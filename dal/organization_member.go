@@ -3,7 +3,6 @@ package dal
 import (
 	"database/sql"
 	error_handling "organization/error"
-	"organization/utils"
 
 	"github.com/lib/pq"
 )
@@ -83,7 +82,7 @@ func IsMemberInvitedByOrganization(db *sql.DB, memberID string, organizationID s
 }
 
 func UpdateMemberRole(db *sql.DB, userID string, role string, organizationID string, memberID string) error {
-	result, err := db.Exec("UPDATE public.member SET role = $1, updated_by = $2, updated_at = $3 WHERE user_id = $4 AND organization_id = $5;", role, userID, utils.AddMinutesToCurrentUTCTime(0), memberID, organizationID)
+	result, err := db.Exec("UPDATE public.member SET role = $1, updated_by = $2, updated_at = current_timestamp() WHERE user_id = $3 AND organization_id = $4;", role, userID, memberID, organizationID)
 	if err != nil {
 		return error_handling.InternalServerError
 	}
@@ -98,7 +97,7 @@ func UpdateMemberRole(db *sql.DB, userID string, role string, organizationID str
 }
 
 func UpdateMemberRoleWithTransaction(tx *sql.Tx, userID string, role string, organizationID string, memberID string) error {
-	result, err := tx.Exec("UPDATE public.member SET role = $1, updated_by = $2, updated_at = $3 WHERE user_id = $4 AND organization_id = $5;", role, userID, utils.AddMinutesToCurrentUTCTime(0), memberID, organizationID)
+	result, err := tx.Exec("UPDATE public.member SET role = $1, updated_by = $2, updated_at = current_timestamp() WHERE user_id = $3 AND organization_id = $4;", role, userID, memberID, organizationID)
 	if err != nil {
 		return error_handling.InternalServerError
 	}
