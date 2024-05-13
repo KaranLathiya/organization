@@ -14,7 +14,7 @@ func CreateOrganization(tx *sql.Tx, createOrganization request.CreateOrganizatio
 	var organizationID string
 	err := tx.QueryRow("INSERT INTO public.organization (name, owner_id, privacy) VALUES ($1, $2, $3) returning id", createOrganization.Name, ownerID, createOrganization.Privacy).Scan(&organizationID)
 	if err != nil {
-		return "", error_handling.InternalServerError
+		return "", error_handling.DatabaseErrorShow(err)
 	}
 	return organizationID, nil
 }
@@ -22,7 +22,7 @@ func CreateOrganization(tx *sql.Tx, createOrganization request.CreateOrganizatio
 func UpdateOrganizationDetails(db *sql.DB, userID string, updateOrganizationDetails request.UpdateOrganizationDetails) error {
 	_, err := db.Exec("UPDATE public.organization SET privacy=$1,name=$2,updated_by=$3,updated_at= current_timestamp() WHERE id=$4 ;", updateOrganizationDetails.Privacy, updateOrganizationDetails.Name, userID, updateOrganizationDetails.OrganizationID)
 	if err != nil {
-		return error_handling.InternalServerError
+		return error_handling.DatabaseErrorShow(err)
 	}
 	return nil
 }
@@ -30,7 +30,7 @@ func UpdateOrganizationDetails(db *sql.DB, userID string, updateOrganizationDeta
 func ChangeOrganizationOwner(tx *sql.Tx, memberID string, userID string, organizationID string) error {
 	_, err := tx.Exec("UPDATE public.organization SET owner_id=$1,updated_by=$2,updated_at= current_timestamp() WHERE id=$3 ;", memberID, userID, organizationID)
 	if err != nil {
-		return error_handling.InternalServerError
+		return error_handling.DatabaseErrorShow(err)
 	}
 	return nil
 }
@@ -42,8 +42,9 @@ func FetchAllOrganizationDetailsOfUser(db *sql.DB, userID string) (response.AllO
 	}
 	rows, err := db.Query("SELECT member.organization_id, organization.name, organization.owner_id, organization.created_at, organization.privacy,  organization.updated_by, organization.updated_at, org_member.role, org_member.user_id FROM member left join organization ON organization.id = member.organization_id LEFT JOIN member AS org_member ON org_member.organization_id = member.organization_id WHERE member.user_id = $1;", userID)
 	if err != nil {
-		return allOrganizationDetailsOfUser, nil, error_handling.InternalServerError
+		return allOrganizationDetailsOfUser, nil, error_handling.DatabaseErrorShow(err)
 	}
+	defer rows.Close()
 	allOrganizationDetailsOfUserMap := make(map[string]response.Organization)
 	allMemberIDsMap := make(map[string]bool)
 	for rows.Next() {
@@ -79,10 +80,7 @@ func FetchOnlyOrganizationDetailsOfCurrentUser(db *sql.DB, userID string, organi
 	var organization response.Organization
 	err := db.QueryRow("SELECT id, name, owner_id FROM public.organization WHERE id = $1;", organizationID).Scan(&organization.OrganizationID, &organization.Name, &organization.OwnerID)
 	if err != nil {
-		if err.Error() == "sql: no rows in result set" {
-			return organizationDetailsOfUser, nil, error_handling.OrganizationDoesNotExist
-		}
-		return organizationDetailsOfUser, nil, error_handling.InternalServerError
+		return organizationDetailsOfUser, nil, error_handling.DatabaseErrorShow(err)
 	}
 	allMemberIDs = append(allMemberIDs, organization.OwnerID)
 	organization.OrganizationMembers = &[]*response.OrganizationMember{}
@@ -102,8 +100,9 @@ func FetchOrganizationDetailsOfCurrentUser(db *sql.DB, userID string, organizati
 	}
 	rows, err := db.Query("SELECT org_member.organization_id, organization.name, organization.owner_id, organization.created_at, organization.privacy, organization.updated_by, organization.updated_at, org_member.role, org_member.user_id FROM member AS org_member LEFT JOIN organization ON organization.id = org_member.organization_id WHERE organization.id = $1;", organizationID)
 	if err != nil {
-		return organizationDetailsOfUser, nil, error_handling.InternalServerError
+		return organizationDetailsOfUser, nil, error_handling.DatabaseErrorShow(err)
 	}
+	defer rows.Close()
 	var organization response.Organization
 	organization.OrganizationMembers = &[]*response.OrganizationMember{}
 	for rows.Next() {
@@ -122,8 +121,9 @@ func FetchOrganizationDetailsOfCurrentUser(db *sql.DB, userID string, organizati
 func FetchOragnizationListOfUsers(db *sql.DB, userIDs []string) ([]response.OrganizationListOfUser, error) {
 	rows, err := db.Query("SELECT user_id,name,role,organization_id FROM public.organization INNER JOIN public.member AS org_member on org_member.organization_id = organization.id WHERE org_member.user_id = ANY($1) ;", pq.Array(userIDs))
 	if err != nil {
-		return nil, error_handling.InternalServerError
+		return nil, error_handling.DatabaseErrorShow(err)
 	}
+	defer rows.Close()
 	userMap := make(map[string]response.OrganizationListOfUser)
 	var organizationListOfUsers []response.OrganizationListOfUser
 	for rows.Next() {
@@ -150,10 +150,7 @@ func FetchOrganizationNameByOrganizationID(db *sql.DB, organizationID string) (s
 	var organizationName string
 	err := db.QueryRow("SELECT name FROM public.organization WHERE id = $1;", organizationID).Scan(&organizationName)
 	if err != nil {
-		if err.Error() == "sql: no rows in result set" {
-			return "", error_handling.OrganizationDoesNotExist
-		}
-		return "", error_handling.InternalServerError
+		return "", error_handling.DatabaseErrorShow(err)
 	}
 	return organizationName, nil
 }
@@ -161,7 +158,7 @@ func FetchOrganizationNameByOrganizationID(db *sql.DB, organizationID string) (s
 func DeleteOrganization(db *sql.DB, organizationID string) error {
 	result, err := db.Exec("DELETE FROM public.organization WHERE id = $1;", organizationID)
 	if err != nil {
-		return error_handling.InternalServerError
+		return error_handling.DatabaseErrorShow(err)
 	}
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
@@ -175,12 +172,9 @@ func DeleteOrganization(db *sql.DB, organizationID string) error {
 
 func FindNumberOfOrganizationsCreatedToday(db *sql.DB) (int, error) {
 	var numberOfOrganizationsCreatedToday int
-	err := db.QueryRow("SELECT COUNT(*) AS num_organizations_created_today FROM organization WHERE DATE(created_at) = CURRENT_DATE;").Scan(&numberOfOrganizationsCreatedToday)
+	err := db.QueryRow("SELECT COUNT(*) AS num_organizations_created_today FROM organizatio WHERE DATE(created_at) = CURRENT_DATE;").Scan(&numberOfOrganizationsCreatedToday)
 	if err != nil {
-		// if err.Error() == "sql: no rows in result set" {
-		// 	return 0, error_handling.OrganizationDoesNotExist
-		// }
-		return 0, error_handling.InternalServerError
+		return 0, error_handling.DatabaseErrorShow(err)
 	}
 	return numberOfOrganizationsCreatedToday, nil
 }

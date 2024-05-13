@@ -1,12 +1,14 @@
 package error
 
 import (
+	"database/sql"
 	"encoding/json"
+	"log"
 	"net/http"
+	"runtime"
 
 	"github.com/gookit/validate"
 	"github.com/lib/pq"
-	_ "github.com/lib/pq"
 )
 
 func init() {
@@ -99,16 +101,25 @@ var (
 	NeedToLoginOnMicrosoft     = CreateCustomError("Need to login on microsoft.", http.StatusUnauthorized)
 	// InvitationAlreadyExist   = CreateCustomError("Already invited the member.", http.StatusOK)
 
-	NotNullConstraintError    = CreateCustomError("Some required data was left out", http.StatusBadRequest)
-	ForeignKeyConstraintError = CreateCustomError("This record can't be changed because another record refers to it", http.StatusConflict)
-	UniqueKeyConstraintError  = CreateCustomError("This record contains duplicated data that conflicts with what is already in the database", http.StatusConflict)
-	CheckConstraintError      = CreateCustomError("This record contains inconsistent or out-of-range data", http.StatusBadRequest)
+	NotNullConstraintError    = CreateCustomError("Required field cannot be empty or null. Please provide a value for the field.", http.StatusBadRequest)
+	ForeignKeyConstraintError = CreateCustomError("Data doesn't exist.", http.StatusConflict)
+	UniqueKeyConstraintError  = CreateCustomError("Data already exists.", http.StatusConflict)
+	CheckConstraintError      = CreateCustomError("Data doesn't meet the required criteria.", http.StatusBadRequest)
+	NoRowsError               = CreateCustomError("Data doesn't exist.", http.StatusNotFound)
 )
 
+func LogErrorMessage(err error) {
+	pc, file, line, _ := runtime.Caller(1)
+	functionName := runtime.FuncForPC(pc).Name()
+	log.Printf("Error %s in file %s, function %s, line %d", err.Error(), file, functionName, line)
+}
+
 func DatabaseErrorShow(err error) error {
+	if err == sql.ErrNoRows {
+		return NoRowsError
+	}
 	if dbErr, ok := err.(*pq.Error); ok {
 		errCode := dbErr.Code
-
 		switch errCode {
 		case "23502":
 			// not-null constraint violation
@@ -125,8 +136,7 @@ func DatabaseErrorShow(err error) error {
 		case "23514":
 			// check constraint violation
 			return CheckConstraintError
-
 		}
 	}
-	return err
+	return InternalServerError
 }

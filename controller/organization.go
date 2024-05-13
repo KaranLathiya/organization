@@ -29,23 +29,28 @@ func (c *UserController) CreateOrganization(w http.ResponseWriter, r *http.Reque
 	go func() {
 		jwtToken, err := utils.CreateJWT("User", "User")
 		if err != nil {
+			error_handling.LogErrorMessage(err)
 			return
 		}
 		body, err := utils.CallAnotherService(jwtToken, constant.USER_SERVICE_BASE_URL+"internal/users/details/"+ownerID, nil, http.MethodGet)
 		if err != nil {
+			error_handling.LogErrorMessage(err)
 			return
 		}
 		var organizationCreatorDetails response.OrganizationCreatorDetails
 		err = json.Unmarshal(body, &organizationCreatorDetails)
 		if err != nil {
+			error_handling.LogErrorMessage(err)
 			return
 		}
 		refreshToken,err := c.repo.FetchMicrosoftRefreshToken()
 		if err != nil {
+			error_handling.LogErrorMessage(err)
 			return
 		}
 		microsoftAuthToken, err := microsoftauth.GetAccessTokenUsingRefreshToken(refreshToken)
 		if err != nil {
+			error_handling.LogErrorMessage(err)
 			return
 		}
 		go c.repo.StoreMicrosoftRefreshToken(microsoftAuthToken.RefreshToken)
@@ -58,6 +63,7 @@ func (c *UserController) CreateOrganization(w http.ResponseWriter, r *http.Reque
 		messgae := utils.ChannelMessageTemplate(ownerPhoneNumberOrEmail, createOrganization.Name, organizationCreatorDetails.Fullname)
 		err = microsoftauth.SendMessageOnChannel(messgae, microsoftAuthToken.AccessToken)
 		if err != nil {
+			error_handling.LogErrorMessage(err)
 			return
 		}
 	}()

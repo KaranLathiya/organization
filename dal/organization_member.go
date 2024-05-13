@@ -3,21 +3,13 @@ package dal
 import (
 	"database/sql"
 	error_handling "organization/error"
-
-	"github.com/lib/pq"
 )
 
 func AddMemberToOrganization(tx *sql.Tx, organizationID string, memberID string, role string, invitedBy *string) error {
 	var id string
 	err := tx.QueryRow("INSERT INTO public.member (organization_id, user_id, role, invited_by) VALUES ($1, $2, $3, $4) returning id", organizationID, memberID, role, invitedBy).Scan(&id)
-	if dbErr, ok := err.(*pq.Error); ok {
-		errCode := dbErr.Code
-		switch errCode {
-		case "23505":
-			// unique constraint violation
-			return error_handling.OrganizationDoesNotExist
-		}
-		return error_handling.InternalServerError
+	if err != nil {
+		return error_handling.DatabaseErrorShow(err)
 	}
 	return nil
 }
@@ -33,7 +25,7 @@ func LeaveOrganization(tx *sql.Tx, userID string, organizationID string) error {
 func RemoveOrganizationMember(tx *sql.Tx, memberID string, organizationID string) error {
 	result, err := tx.Exec("DELETE FROM public.member WHERE user_id = $1 AND organization_id = $2", memberID, organizationID)
 	if err != nil {
-		return error_handling.InternalServerError
+		return error_handling.DatabaseErrorShow(err)
 	}
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
@@ -49,10 +41,7 @@ func CheckRoleOfMember(db *sql.DB, memberID string, organizationID string) (stri
 	var role string
 	err := db.QueryRow("SELECT role FROM public.member WHERE user_id = $1 AND organization_id = $2", memberID, organizationID).Scan(&role)
 	if err != nil {
-		if err.Error() == "sql: no rows in result set" {
-			return "", error_handling.OrganizationDoesNotExist
-		}
-		return "", error_handling.InternalServerError
+		return "", error_handling.DatabaseErrorShow(err)
 	}
 	return role, nil
 }
@@ -61,10 +50,10 @@ func IsMemberOfOrganization(db *sql.DB, memberID string, organizationID string) 
 	var id string
 	err := db.QueryRow("SELECT role FROM public.member WHERE user_id = $1 AND organization_id = $2", memberID, organizationID).Scan(&id)
 	if err != nil {
-		if err.Error() == "sql: no rows in result set" {
+		if err == sql.ErrNoRows {
 			return false, nil
 		}
-		return false, error_handling.InternalServerError
+		return false, error_handling.DatabaseErrorShow(err)
 	}
 	return true, nil
 }
@@ -73,10 +62,10 @@ func IsMemberInvitedByOrganization(db *sql.DB, memberID string, organizationID s
 	var id string
 	err := db.QueryRow("SELECT id FROM public.invitation WHERE invitee = $1 AND organization_id = $2", memberID, organizationID).Scan(&id)
 	if err != nil {
-		if err.Error() == "sql: no rows in result set" {
+		if err == sql.ErrNoRows {
 			return false, nil
 		}
-		return false, error_handling.InternalServerError
+		return false, error_handling.DatabaseErrorShow(err)
 	}
 	return true, nil
 }
@@ -84,7 +73,7 @@ func IsMemberInvitedByOrganization(db *sql.DB, memberID string, organizationID s
 func UpdateMemberRole(db *sql.DB, userID string, role string, organizationID string, memberID string) error {
 	result, err := db.Exec("UPDATE public.member SET role = $1, updated_by = $2, updated_at = current_timestamp() WHERE user_id = $3 AND organization_id = $4;", role, userID, memberID, organizationID)
 	if err != nil {
-		return error_handling.InternalServerError
+		return error_handling.DatabaseErrorShow(err)
 	}
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
@@ -99,7 +88,7 @@ func UpdateMemberRole(db *sql.DB, userID string, role string, organizationID str
 func UpdateMemberRoleWithTransaction(tx *sql.Tx, userID string, role string, organizationID string, memberID string) error {
 	result, err := tx.Exec("UPDATE public.member SET role = $1, updated_by = $2, updated_at = current_timestamp() WHERE user_id = $3 AND organization_id = $4;", role, userID, memberID, organizationID)
 	if err != nil {
-		return error_handling.InternalServerError
+		return error_handling.DatabaseErrorShow(err)
 	}
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
