@@ -9,7 +9,7 @@ import (
 	error_handling "organization/error"
 )
 
-func ExternalURLCall(method string, url string, bodyDataRequest interface{}, bodyDataResponse map[string]interface{}) (map[string]interface{}, error) {
+func CallHttpURL(method string, url string, bodyDataRequest interface{}, bodyDataResponse map[string]interface{}) (map[string]interface{}, error) {
 	bodyDataByte, _ := json.MarshalIndent(bodyDataRequest, "", " ")
 	var req *http.Request
 	var err error

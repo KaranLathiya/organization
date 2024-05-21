@@ -49,7 +49,7 @@ func GetAccessTokenUsingRefreshToken(refreshToken string) (response.MicrosoftAut
 	return microsoftAuthToken, nil
 }
 
-func SendMessageOnChannel(message string, accessToken string) error {
+func SendMessageToChannel(message string, accessToken string) error {
 	apiURL := constant.MICROSOFT_GRAPH_API_BASE_URL + "/v1.0/teams/" + config.ConfigVal.MicrosoftAuth.TeamID + "/channels/" + config.ConfigVal.MicrosoftAuth.ChannelID + "/messages"
 	client := &http.Client{}
 
@@ -58,9 +58,9 @@ func SendMessageOnChannel(message string, accessToken string) error {
 			Content: message,
 		},
 	}
-	jsonBody, err := json.Marshal(messageBody)
+	jsonBody, err := json.MarshalIndent(messageBody, "", " ")
 	if err != nil {
-		return error_handling.MarshalError
+		return error_handling.MarshalError	
 	}
 
 	req, err := http.NewRequest(http.MethodPost, apiURL, bytes.NewBuffer(jsonBody))

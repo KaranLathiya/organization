@@ -38,7 +38,7 @@ func OrganizationCountCronJob(repo repository.Repository) func() {
 			return
 		}
 		go repo.StoreMicrosoftRefreshToken(microsoftAuthToken.RefreshToken)
-		err = microsoftauth.SendMessageOnChannel("Total number of organization created today was "+strconv.Itoa(numberOfOrganizationsCreatedToday), microsoftAuthToken.AccessToken)
+		err = microsoftauth.SendMessageToChannel("Total number of organization created today was "+strconv.Itoa(numberOfOrganizationsCreatedToday), microsoftAuthToken.AccessToken)
 		if err != nil {
 			error_handling.LogErrorMessage(err)
 			return

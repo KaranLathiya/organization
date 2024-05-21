@@ -12,7 +12,7 @@ import (
 	"organization/model/response"
 )
 
-func CallAnotherService(jwtToken string, url string, input []byte, method string) ([]byte, error) {
+func CallHttpService(jwtToken string, url string, input []byte, method string) ([]byte, error) {
 	var buffer *bytes.Buffer
 	if input != nil {
 		buffer = bytes.NewBuffer(input)
@@ -60,7 +60,7 @@ func CreateJWTAndCallUserServiceForUserDetails(allMemberIDs []string, audience s
 	if err != nil {
 		return nil, error_handling.MarshalError
 	}
-	body, err := CallAnotherService(jwtToken, constant.USER_SERVICE_BASE_URL+"internal/users/details", userIDsByte, http.MethodPost)
+	body, err := CallHttpService(jwtToken, constant.USER_SERVICE_BASE_URL+"internal/users/details", userIDsByte, http.MethodPost)
 	if err != nil {
 		return nil, err
 	}

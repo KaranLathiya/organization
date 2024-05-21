@@ -54,12 +54,13 @@ func (c *UserController) GetMicrosoftTokens(w http.ResponseWriter, r *http.Reque
 	err = json.Unmarshal(resBody, &microsoftAuthToken)
 	if err != nil {
 		error_handling.ErrorMessageResponse(w, error_handling.UnmarshalError)
-		return 
+		return
 	}
-	
+
 	err = c.repo.StoreMicrosoftRefreshToken(microsoftAuthToken.RefreshToken)
 	if err != nil {
 		error_handling.ErrorMessageResponse(w, err)
 		return
 	}
+	utils.SuccessMessageResponse(w, http.StatusOK, response.SuccessResponse{Message: constant.TOKENS_CREATED_AND_STORED})
 }

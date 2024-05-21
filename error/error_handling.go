@@ -68,7 +68,8 @@ func CreateCustomError(errorMessage string, statusCode int, invalidData ...Inval
 }
 
 var (
-	UnmarshalError       = CreateCustomError("Error while unmarshling data.", http.StatusInternalServerError)
+	MarshalError         = CreateCustomError("Error while marshling data.", http.StatusInternalServerError)
+	UnmarshalError       = CreateCustomError("Error while unmarshling data.", http.StatusBadRequest)
 	InternalServerError  = CreateCustomError("Internal Server Error.", http.StatusInternalServerError)
 	OTPGenerateError     = CreateCustomError("Error at generating OTP.", http.StatusInternalServerError)
 	BcryptError          = CreateCustomError("Error at bcypting.", http.StatusInternalServerError)
@@ -84,7 +85,6 @@ var (
 	AlreadyBlocked       = CreateCustomError("Already blocked.", http.StatusBadRequest)
 
 	AlreadyInvited             = CreateCustomError("Already invited to the organization.", http.StatusConflict)
-	MarshalError               = CreateCustomError("Error while marshling data.", http.StatusInternalServerError)
 	OrganizationDoesNotExist   = CreateCustomError("Organization does not exist.", http.StatusNotFound)
 	NoAccessRights             = CreateCustomError("You don't have permission due to the role.", http.StatusForbidden)
 	AlreadyMember              = CreateCustomError("Already member of the organization.", http.StatusConflict)

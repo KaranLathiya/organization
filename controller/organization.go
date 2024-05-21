@@ -25,14 +25,13 @@ func (c *UserController) CreateOrganization(w http.ResponseWriter, r *http.Reque
 		error_handling.ErrorMessageResponse(w, err)
 		return
 	}
-	utils.SuccessMessageResponse(w, http.StatusOK, response.OrganizationID{OrganizationID: organizationID})
 	go func() {
 		jwtToken, err := utils.CreateJWT("User", "User")
 		if err != nil {
 			error_handling.LogErrorMessage(err)
 			return
 		}
-		body, err := utils.CallAnotherService(jwtToken, constant.USER_SERVICE_BASE_URL+"internal/users/details/"+ownerID, nil, http.MethodGet)
+		body, err := utils.CallHttpService(jwtToken, constant.USER_SERVICE_BASE_URL+"internal/users/details/"+ownerID, nil, http.MethodGet)
 		if err != nil {
 			error_handling.LogErrorMessage(err)
 			return
@@ -60,13 +59,14 @@ func (c *UserController) CreateOrganization(w http.ResponseWriter, r *http.Reque
 		} else if organizationCreatorDetails.PhoneNumber != nil && organizationCreatorDetails.CountryCode != nil {
 			ownerPhoneNumberOrEmail = *organizationCreatorDetails.CountryCode + *organizationCreatorDetails.PhoneNumber
 		}
-		messgae := utils.ChannelMessageTemplate(ownerPhoneNumberOrEmail, createOrganization.Name, organizationCreatorDetails.Fullname)
-		err = microsoftauth.SendMessageOnChannel(messgae, microsoftAuthToken.AccessToken)
+		messgae := utils.OrganizationCreatedMessageTemplate(ownerPhoneNumberOrEmail, createOrganization.Name, organizationCreatorDetails.Fullname)
+		err = microsoftauth.SendMessageToChannel(messgae, microsoftAuthToken.AccessToken)
 		if err != nil {
 			error_handling.LogErrorMessage(err)
 			return
 		}
 	}()
+	utils.SuccessMessageResponse(w, http.StatusOK, response.OrganizationID{OrganizationID: organizationID})
 }
 
 func (c *UserController) UpdateOrganization(w http.ResponseWriter, r *http.Request) {
@@ -131,7 +131,7 @@ func (c *UserController) OTPForDeleteOrganization(w http.ResponseWriter, r *http
 		error_handling.ErrorMessageResponse(w, error_handling.MarshalError)
 		return
 	}
-	body, err := utils.CallAnotherService(jwtToken, constant.USER_SERVICE_BASE_URL+"internal/user/otp", deleteOrganizationByte, http.MethodPost)
+	body, err := utils.CallHttpService(jwtToken, constant.USER_SERVICE_BASE_URL+"internal/user/otp", deleteOrganizationByte, http.MethodPost)
 	if err != nil {
 		error_handling.ErrorMessageResponse(w, err)
 		return

@@ -17,42 +17,45 @@ func InitializeRouter(controllers *controller.UserController) *chi.Mux {
 			r.Get("/", controllers.MicrosoftAuth)
 			r.Get("/tokens", controllers.GetMicrosoftTokens)
 		})
-		
-		r.Route("/organization", func(r chi.Router) {
+
+		r.Route("/", func(r chi.Router) {
 			r.Use(middleware.Authentication)
-			r.Post("/", controllers.CreateOrganization)
-			r.Put("/", controllers.UpdateOrganization)
-			r.Post("/delete/otp", controllers.OTPForDeleteOrganization)
 
-			r.Route("/members", func(r chi.Router) {
+			r.Route("/organization", func(r chi.Router) {
+				r.Post("/", controllers.CreateOrganization)
+				r.Put("/", controllers.UpdateOrganization)
+				r.Post("/delete/otp", controllers.OTPForDeleteOrganization)
 
-				r.Delete("/", controllers.RemoveMemberFromOrganization)
-				r.Put("/transfer-ownership", controllers.TransferOwnership)
+				r.Route("/members", func(r chi.Router) {
 
-				r.Route("/role", func(r chi.Router) {
-					r.Put("/", controllers.UpdateMemberRole)
+					r.Delete("/", controllers.RemoveMemberFromOrganization)
+					r.Put("/transfer-ownership", controllers.TransferOwnership)
+
+					r.Route("/role", func(r chi.Router) {
+						r.Put("/", controllers.UpdateMemberRole)
+					})
+
+				})
+
+				r.Route("/invitation", func(r chi.Router) {
+					r.Post("/", controllers.InvitationToOrganization)
+				})
+
+				r.Route("/{organization-id}/member", func(r chi.Router) {
+					r.Delete("/leave", controllers.LeaveOrganization)
 				})
 
 			})
 
-			r.Route("/invitation", func(r chi.Router) {
-				r.Post("/", controllers.InvitationToOrganization)
-			})
+			r.Route("/user", func(r chi.Router) {
+				r.Get("/organizations", controllers.FetchAllOrganizationDetailsOfCurrentUser)
+				r.Get("/organization/{organization-id}", controllers.FetchOrganizationDetailsOfCurrentUser)
 
-			r.Route("/{organization-id}/member", func(r chi.Router) {
-				r.Delete("/leave", controllers.LeaveOrganization)
-			})
+				r.Route("/invitations", func(r chi.Router) {
+					r.Get("/", controllers.TrackAllInvitations)
+					r.Post("/", controllers.RespondToInvitation)
+				})
 
-		})
-
-		r.Route("/user", func(r chi.Router) {
-			r.Use(middleware.Authentication)
-			r.Get("/organizations", controllers.FetchAllOrganizationDetailsOfCurrentUser)
-			r.Get("/organization/{organization-id}", controllers.FetchOrganizationDetailsOfCurrentUser)
-
-			r.Route("/invitations", func(r chi.Router) {
-				r.Get("/", controllers.TrackAllInvitations)
-				r.Post("/", controllers.RespondToInvitation)
 			})
 
 		})

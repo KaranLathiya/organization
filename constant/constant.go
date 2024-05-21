@@ -13,6 +13,7 @@ const (
 	REMOVED_FROM_ORGANIZATION    = "Successfully removed from organization."
 	OWNERSHIP_TRANSFERRED        = "Ownership of organization transferred successfully."
 	ORGANIZATION_DELETED         = "Organization deleted successfully."
+	TOKENS_CREATED_AND_STORED    = "Tokens created and stored successfully."
 
 	ORGANIZATION_ROLE_OWNER  = "owner"
 	ORGANIZATION_ROLE_ADMIN  = "admin"
