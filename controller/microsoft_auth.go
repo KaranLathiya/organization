@@ -13,6 +13,17 @@ import (
 	"strings"
 )
 
+// Microsoft Auth link example
+//
+// @tags MicrosoftAuth
+//	@Summary		microsoftAuth link 
+//	@Description	microsoftAuth link for getting code (authorization code)
+//	@ID				microsoftAuth-link
+//	@Accept			json
+//	@Produce		json
+//	@Success		200		{object}	response.SuccessResponse "OK"
+//	@Failure		405		{object}	error.CustomError	"Method Not Allowed"
+//	@Router			/auth/microsoft/ [get]
 func (c *UserController) MicrosoftAuth(w http.ResponseWriter, r *http.Request) {
 	scopes := "https://graph.microsoft.com/Chat.Read https://graph.microsoft.com/Chat.ReadWrite https://graph.microsoft.com/Chat.ReadBasic https://graph.microsoft.com/ChatMessage.Read https://graph.microsoft.com/ChatMessage.Send https://graph.microsoft.com/Channel.ReadBasic.All https://graph.microsoft.com/ChannelMessage.Send https://graph.microsoft.com/User.Read https://graph.microsoft.com/email https://graph.microsoft.com/openid https://graph.microsoft.com/profile"
 	authURL := "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=" + config.ConfigVal.MicrosoftAuth.ClientID + "&response_type=code&redirect_uri=" + config.ConfigVal.MicrosoftAuth.RedirectURI + "&response_mode=query&scope=" + scopes
@@ -20,6 +31,23 @@ func (c *UserController) MicrosoftAuth(w http.ResponseWriter, r *http.Request) {
 	utils.SuccessMessageResponse(w, http.StatusOK, microsoftAuthURL)
 }
 
+// Fetch microsoft tokens example
+//
+// @tags MicrosoftAuth
+//	@Summary		fetch microsoft tokens
+//	@Description	Fetch microsoft tokens using microsoft account
+//	@ID				microsoftAuth-tokens
+//	@Accept			json
+//	@Produce		json
+// @Param   code     query     string     true  "pass the code that we get through the microsoftAuth link"   
+//	@Success		200		{object}	response.SuccessResponse "OK"
+//	@Failure		400		{object}	error.CustomError	"Bad Request"
+//	@Failure		401		{object}	error.CustomError	"Unauthorized"
+//	@Failure		404		{object}	error.CustomError	"Not Found"
+//	@Failure		405		{object}	error.CustomError	"Method Not Allowed"
+//	@Failure		409		{object}	error.CustomError	"Conflict"
+//	@Failure		500		{object}	error.CustomError	"Internal Server Error"
+//	@Router			/auth/microsoft/tokens [get]
 func (c *UserController) GetMicrosoftTokens(w http.ResponseWriter, r *http.Request) {
 	data := url.Values{}
 	data.Set("code", r.FormValue("code"))

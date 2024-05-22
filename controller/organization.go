@@ -12,6 +12,24 @@ import (
 	"organization/utils"
 )
 
+// Create Organization example
+//
+// @tags Organization
+// @Security UserIDAuth
+//	@Summary		create organization
+//	@Description	create organization 
+//	@ID				create-organization
+//	@Accept			json
+//	@Produce		json
+// @Param request body request.CreateOrganization true "The input for create organization"
+//	@Success		200		{object}	response.OrganizationID "OK"
+//	@Failure		400		{object}	error.CustomError	"Bad Request"
+//	@Failure		401		{object}	error.CustomError	"Unauthorized"
+//	@Failure		404		{object}	error.CustomError	"Not Found"
+//	@Failure		405		{object}	error.CustomError	"Method Not Allowed"
+//	@Failure		409		{object}	error.CustomError	"Conflict"
+//	@Failure		500		{object}	error.CustomError	"Internal Server Error"
+//	@Router			/organization/ [post]
 func (c *UserController) CreateOrganization(w http.ResponseWriter, r *http.Request) {
 	ownerID := r.Context().Value(middleware.UserCtxKey).(string)
 	var createOrganization request.CreateOrganization
@@ -69,6 +87,25 @@ func (c *UserController) CreateOrganization(w http.ResponseWriter, r *http.Reque
 	utils.SuccessMessageResponse(w, http.StatusOK, response.OrganizationID{OrganizationID: organizationID})
 }
 
+// Update Organization example
+//
+// @tags Organization
+// @Security UserIDAuth
+//	@Summary		update organization
+//	@Description	update organization 
+//	@ID				update-organization
+//	@Accept			json
+//	@Produce		json
+// @Param request body request.UpdateOrganizationDetails true "The input for update organization"
+//	@Success		200		{object}	response.SuccessResponse "OK"
+//	@Failure		400		{object}	error.CustomError	"Bad Request"
+//	@Failure		401		{object}	error.CustomError	"Unauthorized"
+//	@Failure		403		{object}	error.CustomError	"Forbidden"
+//	@Failure		404		{object}	error.CustomError	"Not Found"
+//	@Failure		405		{object}	error.CustomError	"Method Not Allowed"
+//	@Failure		409		{object}	error.CustomError	"Conflict"
+//	@Failure		500		{object}	error.CustomError	"Internal Server Error"
+//	@Router			/organization/ [put]
 func (c *UserController) UpdateOrganization(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value(middleware.UserCtxKey).(string)
 	var updateOrganizationDetails request.UpdateOrganizationDetails
@@ -94,6 +131,25 @@ func (c *UserController) UpdateOrganization(w http.ResponseWriter, r *http.Reque
 	error_handling.ErrorMessageResponse(w, error_handling.NoAccessRights)
 }
 
+// otp for delete organization example
+//
+// @tags Organization
+// @Security UserIDAuth
+//	@Summary		otp for delete organization
+//	@Description	otp for delete organization on owners's registered mail/phoneNumber
+//	@ID				delete-organization
+//	@Accept			json
+//	@Produce		json
+// @Param request body request.OrganizationID true "The input for update organization"
+//	@Success		200		{object}	response.SuccessResponse "OK"
+//	@Failure		400		{object}	error.CustomError	"Bad Request"
+//	@Failure		401		{object}	error.CustomError	"Unauthorized"
+//	@Failure		403		{object}	error.CustomError	"Forbidden"
+//	@Failure		404		{object}	error.CustomError	"Not Found"
+//	@Failure		405		{object}	error.CustomError	"Method Not Allowed"
+//	@Failure		409		{object}	error.CustomError	"Conflict"
+//	@Failure		500		{object}	error.CustomError	"Internal Server Error"
+//	@Router			/organization/delete/otp [post]
 func (c *UserController) OTPForDeleteOrganization(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value(middleware.UserCtxKey).(string)
 	var organizationID request.OrganizationID

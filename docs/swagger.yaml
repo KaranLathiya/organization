@@ -1,0 +1,1038 @@
+definitions:
+  error.CustomError:
+    properties:
+      errorMessage:
+        type: string
+      invalidData:
+        items:
+          $ref: '#/definitions/error.InvalidData'
+        type: array
+      statusCode:
+        type: integer
+    required:
+    - errorMessage
+    - statusCode
+    type: object
+  error.InvalidData:
+    properties:
+      error:
+        additionalProperties:
+          type: string
+        type: object
+      field:
+        type: string
+    type: object
+  request.CreateOrganization:
+    properties:
+      Privacy:
+        type: string
+      name:
+        type: string
+    type: object
+  request.InvitationToOrganization:
+    properties:
+      invitee:
+        type: string
+      organizationID:
+        type: string
+      role:
+        type: string
+    required:
+    - invitee
+    - organizationID
+    type: object
+  request.OrganizationID:
+    properties:
+      organizationID:
+        type: string
+    required:
+    - organizationID
+    type: object
+  request.RespondToInvitation:
+    properties:
+      invitationAccept:
+        type: boolean
+      organizationID:
+        type: string
+    required:
+    - organizationID
+    type: object
+  request.UpdateMemberRole:
+    properties:
+      memberID:
+        type: string
+      organizationID:
+        type: string
+      role:
+        type: string
+    required:
+    - memberID
+    - organizationID
+    type: object
+  request.UpdateOrganizationDetails:
+    properties:
+      name:
+        type: string
+      organizationID:
+        type: string
+      privacy:
+        type: string
+    required:
+    - organizationID
+    type: object
+  response.AllOrganizationDetailsOfUser:
+    properties:
+      organizations:
+        items:
+          $ref: '#/definitions/response.Organization'
+        type: array
+      userID:
+        type: string
+    type: object
+  response.InvitationDetails:
+    properties:
+      id:
+        type: string
+      invitedAt:
+        type: string
+      invitedBy:
+        type: string
+      organizationID:
+        type: string
+      role:
+        type: string
+    type: object
+  response.JWTToken:
+    properties:
+      jwtToken:
+        type: string
+    type: object
+  response.Organization:
+    properties:
+      createdAt:
+        type: string
+      name:
+        type: string
+      organizationID:
+        type: string
+      organizationMembers:
+        items:
+          $ref: '#/definitions/response.OrganizationMember'
+        type: array
+      ownerID:
+        type: string
+      privacy:
+        type: string
+      updatedAt:
+        type: string
+      updatedBy:
+        type: string
+    type: object
+  response.OrganizationDetailsOfUser:
+    properties:
+      organization:
+        $ref: '#/definitions/response.Organization'
+      userID:
+        type: string
+    type: object
+  response.OrganizationID:
+    properties:
+      organizationID:
+        type: string
+    type: object
+  response.OrganizationInfoOfUser:
+    properties:
+      name:
+        type: string
+      organizationID:
+        type: string
+      role:
+        type: string
+    type: object
+  response.OrganizationListOfUser:
+    properties:
+      organizations:
+        items:
+          $ref: '#/definitions/response.OrganizationInfoOfUser'
+        type: array
+      userIDs:
+        type: string
+    type: object
+  response.OrganizationMember:
+    properties:
+      firstname:
+        type: string
+      fullname:
+        type: string
+      lastname:
+        type: string
+      role:
+        type: string
+      userID:
+        type: string
+      username:
+        type: string
+    type: object
+  response.SuccessResponse:
+    properties:
+      message:
+        type: string
+    type: object
+host: localhost:9000/
+info:
+  contact: {}
+  description: Organization service for create/update/delete organization for user.
+    It allows to invite/remove other users, assign them role and update their roles.
+  title: Organization-Service API
+  version: "1.0"
+paths:
+  /auth/microsoft/:
+    get:
+      consumes:
+      - application/json
+      description: microsoftAuth link for getting code (authorization code)
+      operationId: microsoftAuth-link
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/error.CustomError'
+      summary: microsoftAuth link
+      tags:
+      - MicrosoftAuth
+  /auth/microsoft/tokens:
+    get:
+      consumes:
+      - application/json
+      description: Fetch microsoft tokens using microsoft account
+      operationId: microsoftAuth-tokens
+      parameters:
+      - description: pass the code that we get through the microsoftAuth link
+        in: query
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/error.CustomError'
+      summary: fetch microsoft tokens
+      tags:
+      - MicrosoftAuth
+  /internal/jwt:
+    get:
+      consumes:
+      - application/json
+      description: jwt for organization service call
+      operationId: jwt-for-organization
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.JWTToken'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/error.CustomError'
+      summary: jwt for organization service
+      tags:
+      - PublicAPI
+  /internal/organization/{organization-id}:
+    delete:
+      consumes:
+      - application/json
+      description: delete organization after verifying otp
+      operationId: organization-delete
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/response.OrganizationListOfUser'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/error.CustomError'
+      security:
+      - JWTAuth: []
+      summary: delete organization
+      tags:
+      - PublicAPI
+  /internal/organizations:
+    post:
+      consumes:
+      - application/json
+      description: fetch organization list of users
+      operationId: organization-list-of-users
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/response.OrganizationListOfUser'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/error.CustomError'
+      security:
+      - JWTAuth: []
+      summary: fetch organization list of users
+      tags:
+      - PublicAPI
+  /organization/:
+    post:
+      consumes:
+      - application/json
+      description: create organization
+      operationId: create-organization
+      parameters:
+      - description: The input for create organization
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateOrganization'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.OrganizationID'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/error.CustomError'
+      security:
+      - UserIDAuth: []
+      summary: create organization
+      tags:
+      - Organization
+    put:
+      consumes:
+      - application/json
+      description: update organization
+      operationId: update-organization
+      parameters:
+      - description: The input for update organization
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateOrganizationDetails'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/error.CustomError'
+      security:
+      - UserIDAuth: []
+      summary: update organization
+      tags:
+      - Organization
+  /organization/{organization-id}/member/leave:
+    delete:
+      consumes:
+      - application/json
+      description: organization member leave the organization
+      operationId: leave-organization
+      parameters:
+      - description: organizationID
+        in: path
+        name: organization-id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/error.CustomError'
+      security:
+      - UserIDAuth: []
+      summary: leave organization
+      tags:
+      - OrganizationMember
+  /organization/delete/otp:
+    post:
+      consumes:
+      - application/json
+      description: otp for delete organization on owners's registered mail/phoneNumber
+      operationId: delete-organization
+      parameters:
+      - description: The input for update organization
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.OrganizationID'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/error.CustomError'
+      security:
+      - UserIDAuth: []
+      summary: otp for delete organization
+      tags:
+      - Organization
+  /organization/invitation/:
+    post:
+      consumes:
+      - application/json
+      description: invitaton for join organization
+      operationId: invitation-to-organization
+      parameters:
+      - description: The input for invite to organization
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.InvitationToOrganization'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/error.CustomError'
+      security:
+      - UserIDAuth: []
+      summary: invitaton to organization
+      tags:
+      - OrganizationInvitation
+  /organization/invitations/:
+    get:
+      consumes:
+      - application/json
+      description: track all invitations of user
+      operationId: track-invitations-of-user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/response.InvitationDetails'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/error.CustomError'
+      security:
+      - UserIDAuth: []
+      summary: track all invitations
+      tags:
+      - OrganizationInvitation
+    post:
+      consumes:
+      - application/json
+      description: accept or reject organization invitation
+      operationId: respond-to-invitation
+      parameters:
+      - description: The input for respond to invitation
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.RespondToInvitation'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/error.CustomError'
+      security:
+      - UserIDAuth: []
+      summary: respond to invitations
+      tags:
+      - OrganizationInvitation
+  /organization/members/:
+    delete:
+      consumes:
+      - application/json
+      description: remove organization member from the organization
+      operationId: remove-organization-member
+      parameters:
+      - description: ' '
+        in: query
+        name: organization
+        required: true
+        type: string
+      - description: ' '
+        in: query
+        name: member
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/error.CustomError'
+      security:
+      - UserIDAuth: []
+      summary: remove organization member
+      tags:
+      - OrganizationMember
+  /organization/members/role/:
+    put:
+      consumes:
+      - application/json
+      description: update organization memeber role
+      operationId: update-member-role
+      parameters:
+      - description: The input for update organization member role
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateMemberRole'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/error.CustomError'
+      security:
+      - UserIDAuth: []
+      summary: update organization memeber role
+      tags:
+      - OrganizationMember
+  /organization/members/transfer-ownership:
+    put:
+      consumes:
+      - application/json
+      description: transfer organization ownership by the owner
+      operationId: transfer-organization-ownership
+      parameters:
+      - description: ' '
+        in: query
+        name: organization
+        required: true
+        type: string
+      - description: ' '
+        in: query
+        name: member
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/error.CustomError'
+      security:
+      - UserIDAuth: []
+      summary: transfer organization ownership
+      tags:
+      - OrganizationMember
+  /user/organizations/:
+    get:
+      consumes:
+      - application/json
+      description: fetch all organizations of current user
+      operationId: organizations-of-user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.AllOrganizationDetailsOfUser'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/error.CustomError'
+      security:
+      - UserIDAuth: []
+      summary: fetch all organizations
+      tags:
+      - UserOrganizationData
+  /user/organizations/{organization-id}:
+    get:
+      consumes:
+      - application/json
+      description: fetch organization details of current user by organizationID
+      operationId: organization-of-user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.OrganizationDetailsOfUser'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/error.CustomError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/error.CustomError'
+      security:
+      - UserIDAuth: []
+      summary: fetch organization details of current user
+      tags:
+      - UserOrganizationData
+schemes:
+- http
+securityDefinitions:
+  UserIDAuth:
+    in: header
+    name: Auth-user
+    type: apiKey
+  jwtAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
+tags:
+- description: for microsoft login,tokens
+  name: MicrosoftAuth
+- description: Organization create, update, delete
+  name: Organization
+- description: Organization member role update, leave organization, remove member,
+    transfer ownership
+  name: OrganizationMember
+- description: sent, respond, track of invitation
+  name: OrganizationInvitation
+- description: get users organizations details
+  name: UserOrganizationData
+- description: inter service apis
+  name: PublicAPI

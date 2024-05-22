@@ -18,6 +18,7 @@ Organization service for create/update/delete organization for user. It allows t
 - CockroachDB
 - Dbmate
 - JWT (json web token)
+- Swagger
 
 ## Run Locally
 
@@ -44,6 +45,13 @@ Prerequisites you need to set up on your local computer:
    - Add Cockroach database URL in `DATABASE_URL` variable.
 4. Run `dbmate migrate` to migrate database schema.
 5. Run `go run cmd/main.go` to run the programme.
+
+## API Documentation:
+
+After executing run command, open your favorite browser and type below URL to open API documentation.
+```
+http://localhost:9000/swagger/index.html/
+```
 
 # Routing
 

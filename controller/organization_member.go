@@ -12,6 +12,25 @@ import (
 	"github.com/go-chi/chi"
 )
 
+// Update Organization member role example
+//
+// @tags OrganizationMember
+// @Security UserIDAuth
+//	@Summary		update organization memeber role
+//	@Description	update organization memeber role
+//	@ID				update-member-role
+//	@Accept			json
+//	@Produce		json
+// @Param request body request.UpdateMemberRole true "The input for update organization member role"
+//	@Success		200		{object}	response.SuccessResponse "OK"
+//	@Failure		400		{object}	error.CustomError	"Bad Request"
+//	@Failure		401		{object}	error.CustomError	"Unauthorized"
+//	@Failure		403		{object}	error.CustomError	"Forbidden"
+//	@Failure		404		{object}	error.CustomError	"Not Found"
+//	@Failure		405		{object}	error.CustomError	"Method Not Allowed"
+//	@Failure		409		{object}	error.CustomError	"Conflict"
+//	@Failure		500		{object}	error.CustomError	"Internal Server Error"
+//	@Router			/organization/members/role/ [put]
 func (c *UserController) UpdateMemberRole(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value(middleware.UserCtxKey).(string)
 	var updateMemberRole request.UpdateMemberRole
@@ -50,6 +69,25 @@ func (c *UserController) UpdateMemberRole(w http.ResponseWriter, r *http.Request
 	error_handling.ErrorMessageResponse(w, error_handling.NoAccessRights)
 }
 
+// leave organization example
+//
+// @tags OrganizationMember
+// @Security UserIDAuth
+//	@Summary		leave organization
+//	@Description	organization member leave the organization
+//	@ID				leave-organization
+//	@Accept			json
+//	@Produce		json
+// @Param  organization-id path string true "organizationID"
+//	@Success		200		{object}	response.SuccessResponse "OK"
+//	@Failure		400		{object}	error.CustomError	"Bad Request"
+//	@Failure		401		{object}	error.CustomError	"Unauthorized"
+//	@Failure		403		{object}	error.CustomError	"Forbidden"
+//	@Failure		404		{object}	error.CustomError	"Not Found"
+//	@Failure		405		{object}	error.CustomError	"Method Not Allowed"
+//	@Failure		409		{object}	error.CustomError	"Conflict"
+//	@Failure		500		{object}	error.CustomError	"Internal Server Error"
+//	@Router			/organization/{organization-id}/member/leave [delete]
 func (c *UserController) LeaveOrganization(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value(middleware.UserCtxKey).(string)
 	organizationID := request.OrganizationID{
@@ -77,6 +115,26 @@ func (c *UserController) LeaveOrganization(w http.ResponseWriter, r *http.Reques
 	utils.SuccessMessageResponse(w, http.StatusOK, response.SuccessResponse{Message: constant.LEAVE_ORGANIZATION})
 }
 
+// Remove organization member example
+//
+// @tags OrganizationMember
+// @Security UserIDAuth
+//	@Summary		remove organization member
+//	@Description	remove organization member from the organization
+//	@ID				remove-organization-member
+//	@Accept			json
+//	@Produce		json
+// @Param     organization     query     string     true  " "
+// @Param     member           query     string     true   " "
+//	@Success		200		{object}	response.SuccessResponse "OK"
+//	@Failure		400		{object}	error.CustomError	"Bad Request"
+//	@Failure		401		{object}	error.CustomError	"Unauthorized"
+//	@Failure		403		{object}	error.CustomError	"Forbidden"
+//	@Failure		404		{object}	error.CustomError	"Not Found"
+//	@Failure		405		{object}	error.CustomError	"Method Not Allowed"
+//	@Failure		409		{object}	error.CustomError	"Conflict"
+//	@Failure		500		{object}	error.CustomError	"Internal Server Error"
+//	@Router			/organization/members/ [delete]
 func (c *UserController) RemoveMemberFromOrganization(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value(middleware.UserCtxKey).(string)
 	removeMemberFromOrganization := request.RemoveMemberFromOrganization{
@@ -118,6 +176,26 @@ func (c *UserController) RemoveMemberFromOrganization(w http.ResponseWriter, r *
 	error_handling.ErrorMessageResponse(w, error_handling.NoAccessRights)
 }
 
+// Transfer organization ownership example
+//
+// @tags OrganizationMember
+// @Security UserIDAuth
+//	@Summary		transfer organization ownership
+//	@Description	transfer organization ownership by the owner
+//	@ID				transfer-organization-ownership
+//	@Accept			json
+//	@Produce		json
+// @Param     organization     query     string     true  " "
+// @Param     member           query     string     true   " "
+//	@Success		200		{object}	response.SuccessResponse "OK"
+//	@Failure		400		{object}	error.CustomError	"Bad Request"
+//	@Failure		401		{object}	error.CustomError	"Unauthorized"
+//	@Failure		403		{object}	error.CustomError	"Forbidden"
+//	@Failure		404		{object}	error.CustomError	"Not Found"
+//	@Failure		405		{object}	error.CustomError	"Method Not Allowed"
+//	@Failure		409		{object}	error.CustomError	"Conflict"
+//	@Failure		500		{object}	error.CustomError	"Internal Server Error"
+//	@Router			/organization/members/transfer-ownership [put]
 func (c *UserController) TransferOwnership(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value(middleware.UserCtxKey).(string)
 	var transferOwnership request.TransferOwnership
